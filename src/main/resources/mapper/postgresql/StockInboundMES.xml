@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sewon.uploadservice.repository.mes.MESStockMapper">
+  <select id="findInboundWaitingStockSummaryByTargetsBulk" resultType="MESInboundBoxStockRecord">
+    SELECT CAST('WAITING' AS CHAR(7)) AS chck,
+    TRIM(A.STATE) AS STATE,
+    TRIM(A.PACKNO) AS PACKNO,
+    TRIM(C.CARCODE) AS CARCODE,
+    TRIM(C.ITEMNAME) AS ITEMNAME,
+    TRIM(T.ITEMCODE) AS ITEMCODE,
+    TRIM(A.ALC) AS ALC,
+    NULLIF(COUNT(A.PACKNO), 0) AS QTY
+    FROM (
+    VALUES
+    <foreach collection="itemCodeList" item="itemCode" separator=",">
+      (#{itemCode})
+    </foreach>
+    ) AS T (ITEMCODE)
+    LEFT JOIN L_STORAGE_IPGO2_WAIT A ON A.ITEMCODE = T.ITEMCODE
+    AND A.FACTORY = #{factory}
+    AND A.RE_CHECK = '0'
+    LEFT JOIN A_PACKING_MST2 C ON A.ITEMCODE = C.ITEMCODE
+    AND (A.ALC = C.ALC OR A.ALC = C.ALCBCODE)
+    GROUP BY A.STATE, A.PACKNO, C.CARCODE, C.ITEMNAME, T.ITEMCODE, A.ALC
+    ORDER BY C.CARCODE, T.ITEMCODE, QTY DESC
+  </select>
+
+  <select id="findInboundPackingStockSummaryByTargetsBulk" resultType="MESInboundBoxStockRecord">
+    SELECT CAST('PACKING' AS CHAR(7)) AS chck,
+    TRIM(A.STATE) AS STATE,
+    TRIM(A.BOX_CNT) AS PACKNO,
+    TRIM(C.CARCODE) AS CARCODE,
+    TRIM(C.ITEMNAME) AS ITEMNAME,
+    TRIM(T.ITEMCODE) AS ITEMCODE,
+    TRIM(A.ALC) AS ALC,
+    NULLIF(COUNT(A.PACKNO), 0) AS QTY
+    FROM (
+    VALUES
+    <foreach collection="itemCodeList" item="itemCode" separator=",">
+      (#{itemCode})
+    </foreach>
+    ) AS T (ITEMCODE)
+    LEFT JOIN L_STORAGE_IPGO2_PACK A ON A.ITEMCODE = T.ITEMCODE
+    AND A.FACTORY = #{factory}
+    AND A.RE_CHECK = '0'
+    LEFT JOIN A_PACKING_MST2 C ON A.ITEMCODE = C.ITEMCODE
+    AND (A.ALC = C.ALC OR A.ALC = C.ALCBCODE)
+    GROUP BY A.STATE, A.BOX_CNT, C.CARCODE, C.ITEMNAME, T.ITEMCODE, A.ALC
+    ORDER BY C.CARCODE, T.ITEMCODE, QTY DESC
+  </select>
+  
+  <select id="findInboundStockSummaryByTargetsBulk" resultType="MESInboundStockRecord">
+    SELECT
+    TRIM(A.STATE) AS FACTORY,
+    TRIM(A.LGORT) AS LOCATION,
+    TRIM(T.ITEMCODE) AS ITEMCODE,
+    NULLIF(COUNT(A.ITEMCODE), 0) AS QUANTITY
+    FROM (
+    VALUES
+    <foreach collection="itemCodeList" item="itemCode" separator=",">
+      (#{itemCode})
+    </foreach>
+    ) AS T (ITEMCODE)
+    LEFT JOIN L_STORAGE_IPGO2 A ON A.ITEMCODE = T.ITEMCODE
+    WHERE A.FACTORY = #{factory}
+    AND A.RE_CHECK = '0'
+    AND A.LGORT LIKE '6%'
+    GROUP BY A.STATE, A.FACTORY, T.ITEMCODE, A.LGORT;
+  </select>
+
+  <select id="findInboundAllBoxSummaryByTargetsBulk" resultType="MESInboundAllBoxStockRecord">
+    -- WAIT 목록 조회
+    SELECT
+    COALESCE(TRIM(W.STATE), '') AS FACTORY,
+    COALESCE(TRIM(W.PACKNO),'') AS BOXNO,
+    'WAITING' AS STATUS,
+    COALESCE(TRIM(C.CARCODE),'') AS CARCODE,
+    COALESCE(TRIM(C.ITEMNAME),'') AS ITEMNAME,
+    TRIM(T.ITEMCODE) AS ITEMCODE,
+    CASE WHEN W.ITEMCODE IS NULL THEN 0 ELSE 1 END AS QUANTITY -- 각 행은 1개의 수량을 의미
+    FROM
+    (VALUES
+    <foreach collection="itemCodeList" item="itemCode" separator=",">
+      (#{itemCode})
+    </foreach>
+    )
+    AS T(ITEMCODE)
+    LEFT JOIN
+    L_STORAGE_IPGO2_WAIT W ON T.ITEMCODE = W.ITEMCODE AND W.FACTORY = #{factory}
+    AND W.RE_CHECK = '0'
+    LEFT JOIN
+    A_PACKING_MST2 C ON W.ITEMCODE = C.ITEMCODE AND (W.ALC = C.ALC OR W.ALC = C.ALCBCODE)
+
+    UNION ALL
+
+    -- PACK 목록 조회
+    SELECT
+    COALESCE(TRIM(P.STATE),'') AS FACTORY,
+    COALESCE(TRIM(P.BOX_CNT),'') AS BOXNO,
+    'PACKING' AS STATUS,
+    COALESCE(TRIM(C.CARCODE),'') AS CARCODE,
+    COALESCE(TRIM(C.ITEMNAME),'') AS ITEMNAME,
+    TRIM(T.ITEMCODE) AS ITEMCODE,
+    CASE WHEN P.ITEMCODE IS NULL THEN 0 ELSE 1 END AS QUANTITY -- 각 행은 1개의 수량을 의미
+    FROM
+    (VALUES
+    <foreach collection="itemCodeList" item="itemCode" separator=",">
+      (#{itemCode})
+    </foreach>
+    ) AS T(ITEMCODE)
+    LEFT JOIN
+    L_STORAGE_IPGO2_PACK P ON T.ITEMCODE = P.ITEMCODE AND P.FACTORY = #{factory}
+    AND P.RE_CHECK = '0'
+    LEFT JOIN
+    A_PACKING_MST2 C ON P.ITEMCODE = C.ITEMCODE AND (P.ALC = C.ALC OR P.ALC = C.ALCBCODE);
+  </select>
+
+  <select id="findInboundStockBoxSummaryByTargetsBulk" parameterType="java.util.List">
+    SELECT COALESCE(A.PACKNO, '') as boxNo,
+    T.ITEMCODE as itemCode,
+    NULLIF(COUNT(A.PACKNO), 0) AS quantity
+    FROM (VALUES
+    <foreach collection="itemCodeList" item="itemCode" separator=",">
+      (#{itemCode})
+    </foreach>
+    )
+    AS T (ITEMCODE)
+    LEFT JOIN L_STORAGE_IPGO2 A ON T.ITEMCODE = A.ITEMCODE
+    AND A.FACTORY = #{factory}
+    AND A.RE_CHECK = '0'
+    AND A.LGORT LIKE '6%'
+    LEFT JOIN A_PACKING_MST2 C ON A.ITEMCODE = C.ITEMCODE
+    AND (A.ALC = C.ALC OR A.ALC = C.ALCBCODE)
+    GROUP BY A.PACKNO, T.ITEMCODE
+    ORDER BY quantity;
+  </select>
+
+</mapper>

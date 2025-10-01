@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sewon.uploadservice.repository.mes.MESStockMapper">
+ <select id="findOutboundStockTotalByDate" resultType="MESOutboundStockRecord">
+   SELECT
+       TRIM(A.ITEMCODE)  AS ITEMCODE,
+       COUNT(DISTINCT A.BARCODE) AS OUT_QTY,
+       DATE (A.ILJA) AS OUTBOUND_DATE
+   FROM L_STORAGE_CHULGO2 A
+   WHERE A.FACTORY = #{factory}
+     AND A.STATE = 'N3'
+     AND A.ILJA BETWEEN #{from}
+     AND #{to}
+   GROUP BY ITEMCODE, ILJA
+   ORDER BY ITEMCODE
+ </select>
+
+</mapper>

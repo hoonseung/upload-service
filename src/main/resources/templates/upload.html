@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>파일 업로드</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="upload-container">
+  <h2 class="section-title">파일 업로드</h2>
+
+  <form th:action="@{/upload/plan}" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+      <label for="gFile">G 파일:</label>
+      <input type="file" id="gFile" name="gFile" multiple>
+    </div>
+
+    <div class="form-group">
+      <label for="dFile">D 파일:</label>
+      <input type="file" id="dFile" name="dFile" multiple>
+    </div>
+
+    <div class="form-group">
+      <label for="date">날짜 선택:</label>
+      <input type="date" id="date" name="date">
+      <small>날짜 미 선택 시 오늘날짜 적용</small>
+    </div>
+
+    <button type="submit" class="upload-btn">업로드</button>
+  </form>
+
+  <hr>
+
+  <h2 class="section-title">2차 업로드</h2>
+  <form th:action="@{/upload/outbound/second}" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+      <label for="file">추가 파일:</label>
+      <input type="file" id="file" name="file">
+    </div>
+    <button type="submit" class="upload-btn secondary">2차 업로드</button>
+  </form>
+</div>
+</body>
+</html>

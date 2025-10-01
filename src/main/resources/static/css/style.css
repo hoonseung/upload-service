@@ -1,0 +1,96 @@
+/* 전체 레이아웃 */
+body {
+  font-family: "Noto Sans KR", sans-serif;
+  background: #f5f7fa;
+  margin: 0;
+  padding: 20px;
+}
+
+.upload-container {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* 공통 제목 스타일 */
+.section-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.section-title::before {
+  content: "◆";
+  color: #4caf50;
+  margin-right: 8px;
+  font-size: 1rem;
+}
+
+/* 입력 영역 */
+.form-group {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+label {
+  width: 100px;
+  font-weight: bold;
+  color: #333;
+}
+
+input[type="file"], input[type="date"] {
+  flex: 1;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+small {
+  display: block;
+  margin-left: 100px;
+  margin-top: 5px;
+  color: #777;
+  font-size: 0.85rem;
+}
+
+/* 버튼 */
+.upload-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.1s;
+}
+
+.upload-btn:hover {
+  background: #43a047;
+  transform: translateY(-2px);
+}
+
+.upload-btn.secondary {
+  background: #2196f3;
+}
+
+.upload-btn.secondary:hover {
+  background: #1976d2;
+}
+
+hr {
+  margin: 30px 0;
+  border: none;
+  border-top: 1px solid #ddd;
+}

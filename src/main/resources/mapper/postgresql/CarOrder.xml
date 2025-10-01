@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sewon.uploadservice.repository.car.CarOrderMapper">
+  <insert id="bulkInsertSecondOutbound" parameterType="java.util.List">
+    INSERT INTO order_second_outbound (
+    item_code, qty, upload_date,created_at, modified_at
+    ) VALUES
+    <foreach collection="outbounds" item="item" separator=",">
+      (#{item.itemCode}, #{item.quantity},
+      #{item.uploadDate},
+      #{item.createdDate}, #{item.modifyDate})
+    </foreach>
+    ON CONFLICT (item_code, upload_date)
+    DO UPDATE
+    SET qty = EXCLUDED.qty, modified_at = now()
+    WHERE order_second_outbound.qty IS DISTINCT FROM EXCLUDED.qty
+  </insert>
+  <!-- 벌크 row insert -->
+  <insert id="bulkInsertCarOrder"  parameterType="java.util.List">
+    INSERT INTO order_car (
+      category, supplier, alc, item_code, t_time, result,
+      line, yra, in_house, inspection, ct, long_term, oem,
+
+    d, d_plus1, d_plus2, d_plus3, d_plus4, d_plus5, d_plus6, d_plus7, d_plus8,
+    d_plus9, d_plus10, d_plus11, d_plus12, d_plus13, d_plus14, d_plus15, d_plus16,
+    d_plus17, d_plus18, d_plus19, d_plus20, rem, ct_location, upload_date,
+
+      created_at, modified_at
+    ) VALUES
+    <foreach collection="carOrders" item="item" separator=",">
+      (
+      #{item.category}, #{item.supplier}, #{item.alc}, #{item.itemCode}, #{item.tTime}, #{item.result},
+      #{item.line}, #{item.yra}, #{item.inhouse}, #{item.inspection}, #{item.container}, #{item.longTerm}, #{item.oem},
+
+      #{item.d}, #{item.dPlus1}, #{item.dPlus2}, #{item.dPlus3}, #{item.dPlus4}, #{item.dPlus5}, #{item.dPlus6}, #{item.dPlus7}, #{item.dPlus8},
+      #{item.dPlus9}, #{item.dPlus10}, #{item.dPlus11}, #{item.dPlus12}, #{item.dPlus13}, #{item.dPlus14}, #{item.dPlus15}, #{item.dPlus16},
+      #{item.dPlus17}, #{item.dPlus18}, #{item.dPlus19}, #{item.dPlus20}, #{item.rem}, #{item.ctLocations}, #{item.uploadDate},
+
+      #{item.createdDate}, #{item.modifyDate}
+      )
+    </foreach>
+  </insert>
+  <!-- 벌크 row insert -->
+  <insert id="bulkInsertMesBox" parameterType="java.util.List">
+    INSERT INTO order_mes_box (
+      item_code, box_1, box_2, box_3, box_4, box_5, w_qty, p_qty, created_at, modified_at
+    )  VALUES
+<foreach collection="mesBoxes" item="item" separator=",">
+  (
+   #{item.itemCode}, #{item.box1}, #{item.box2}, #{item.box3},
+   #{item.box4}, #{item.box5}, #{item.waitingQuantity},
+   #{item.packingQuantity}, #{item.createdDate}, #{item.modifyDate}
+  )
+</foreach>
+  </insert>
+
+  <!-- 벌크 row insert -->
+  <insert id="bulkInsertInboundMesStock" parameterType="java.util.List">
+    INSERT INTO order_mes_stock (
+    factory, item_code, qty, created_at, modified_at
+    )  VALUES
+    <foreach collection="mesStocks" item="item" separator=",">
+      (
+      #{item.factory}, #{item.itemCode}, #{item.quantity}, #{item.createdDate}, #{item.modifyDate}
+      )
+    </foreach>
+  </insert>
+
+  <insert id="bulkInsertInboundMesStockBox" parameterType="java.util.List">
+    INSERT INTO order_mes_stock_box (
+    item_code, box1, box2, box3, box4, box5, box6, box7, box8, box9, box10,
+    box11, box12, box13, box14, box15, box16, box17, box18, box19, box20,
+    box21, box22, box23, box24, box25, box26, box27, box28, box29, box30,
+    created_at, modified_at
+    ) VALUES
+    <foreach collection="mesStockBoxes" item="item" separator=",">
+      (
+      #{item.itemCode}, #{item.box1}, #{item.box2}, #{item.box3}, #{item.box4}, #{item.box5},
+      #{item.box6}, #{item.box7}, #{item.box8}, #{item.box9}, #{item.box10},
+      #{item.box11}, #{item.box12}, #{item.box13}, #{item.box14}, #{item.box15},
+      #{item.box16}, #{item.box17}, #{item.box18}, #{item.box19}, #{item.box20},
+      #{item.box21}, #{item.box22}, #{item.box23}, #{item.box24}, #{item.box25},
+      #{item.box26}, #{item.box27}, #{item.box28}, #{item.box29}, #{item.box30},
+      #{item.createdDate}, #{item.modifyDate}
+      )
+    </foreach>
+  </insert>
+
+
+  <update   id="bulkUpdateMesBox"  parameterType="java.util.List">
+    WITH temp_product_list AS (
+    SELECT *
+    FROM (VALUES
+    <foreach collection="mesBoxes" item="item" separator=",">
+      (#{item.itemCode}, #{item.box1}, #{item.box2}, #{item.box3},
+      #{item.box4}, #{item.box5}, #{item.waitingQuantity}, #{item.packingQuantity})
+    </foreach>
+    ) AS v (temp_part_no, temp_box1, temp_box2, temp_box3, temp_box4, temp_box5,
+        temp_w_qty, temp_p_qty)
+    )
+    UPDATE order_mes_box AS m SET
+        box_1 = CASE WHEN m.box_1 IS DISTINCT FROM t.temp_box1 THEN t.temp_box1 ELSE m.box_1 END,
+        box_2 = CASE WHEN m.box_2 IS DISTINCT FROM t.temp_box2 THEN t.temp_box2 ELSE m.box_2 END,
+        box_3 = CASE WHEN m.box_3 IS DISTINCT FROM t.temp_box3 THEN t.temp_box3 ELSE m.box_3 END,
+        box_4 = CASE WHEN m.box_4 IS DISTINCT FROM t.temp_box4 THEN t.temp_box4 ELSE m.box_4 END,
+        box_5 = CASE WHEN m.box_5 IS DISTINCT FROM t.temp_box5 THEN t.temp_box5 ELSE m.box_5 END,
+        w_qty = CASE WHEN m.w_qty IS DISTINCT FROM t.temp_w_qty THEN t.temp_w_qty ELSE m.w_qty END,
+        p_qty = CASE WHEN m.p_qty IS DISTINCT FROM t.temp_p_qty THEN t.temp_p_qty ELSE m.p_qty END,
+        modified_at = now()
+    FROM temp_product_list AS t
+    WHERE m.item_code = t.temp_part_no
+  </update>
+
+  <update   id="bulkUpdateMesInboundStock"  parameterType="java.util.List">
+    WITH temp_product_list AS (
+    SELECT *
+    FROM (VALUES
+    <foreach collection="mesStocks" item="item" separator=",">
+      (#{item.factory}, #{item.itemCode}, #{item.quantity})
+    </foreach>
+    ) AS v(temp_factory, temp_item_code, temp_qty)
+    )
+    UPDATE order_mes_stock AS m SET
+    qty = CASE WHEN m.qty IS DISTINCT FROM t.temp_qty THEN t.temp_qty ELSE m.qty END,
+    modified_at = now()
+    FROM temp_product_list AS t
+    WHERE m.factory = t.temp_factory
+    AND m.item_code = t.temp_item_code
+  </update>
+
+  <update id="bulkUpdateMesInboundStockBox" parameterType="java.util.List">
+    WITH temp_product_list AS (
+    SELECT *
+    FROM (VALUES
+    <foreach collection="mesStockBoxes" item="item" separator=",">
+      (
+      #{item.itemCode}, #{item.box1}, #{item.box2}, #{item.box3}, #{item.box4}, #{item.box5},
+      #{item.box6}, #{item.box7}, #{item.box8}, #{item.box9}, #{item.box10},
+      #{item.box11}, #{item.box12}, #{item.box13}, #{item.box14}, #{item.box15},
+      #{item.box16}, #{item.box17}, #{item.box18}, #{item.box19}, #{item.box20},
+      #{item.box21}, #{item.box22}, #{item.box23}, #{item.box24}, #{item.box25},
+      #{item.box26}, #{item.box27}, #{item.box28}, #{item.box29}, #{item.box30}
+      )
+    </foreach>
+    ) AS v (
+    temp_part_no, temp_box1, temp_box2, temp_box3, temp_box4, temp_box5,
+    temp_box6, temp_box7, temp_box8, temp_box9, temp_box10,
+    temp_box11, temp_box12, temp_box13, temp_box14, temp_box15,
+    temp_box16, temp_box17, temp_box18, temp_box19, temp_box20,
+    temp_box21, temp_box22, temp_box23, temp_box24, temp_box25,
+    temp_box26, temp_box27, temp_box28, temp_box29, temp_box30
+    )
+    )
+    UPDATE order_mes_stock_box AS m SET
+    box1 = CASE WHEN m.box1 IS DISTINCT FROM t.temp_box1 THEN t.temp_box1 ELSE m.box1 END,
+    box2 = CASE WHEN m.box2 IS DISTINCT FROM t.temp_box2 THEN t.temp_box2 ELSE m.box2 END,
+    box3 = CASE WHEN m.box3 IS DISTINCT FROM t.temp_box3 THEN t.temp_box3 ELSE m.box3 END,
+    box4 = CASE WHEN m.box4 IS DISTINCT FROM t.temp_box4 THEN t.temp_box4 ELSE m.box4 END,
+    box5 = CASE WHEN m.box5 IS DISTINCT FROM t.temp_box5 THEN t.temp_box5 ELSE m.box5 END,
+    box6 = CASE WHEN m.box6 IS DISTINCT FROM t.temp_box6 THEN t.temp_box6 ELSE m.box6 END,
+    box7 = CASE WHEN m.box7 IS DISTINCT FROM t.temp_box7 THEN t.temp_box7 ELSE m.box7 END,
+    box8 = CASE WHEN m.box8 IS DISTINCT FROM t.temp_box8 THEN t.temp_box8 ELSE m.box8 END,
+    box9 = CASE WHEN m.box9 IS DISTINCT FROM t.temp_box9 THEN t.temp_box9 ELSE m.box9 END,
+    box10 = CASE WHEN m.box10 IS DISTINCT FROM t.temp_box10 THEN t.temp_box10 ELSE m.box10 END,
+    box11 = CASE WHEN m.box11 IS DISTINCT FROM t.temp_box11 THEN t.temp_box11 ELSE m.box11 END,
+    box12 = CASE WHEN m.box12 IS DISTINCT FROM t.temp_box12 THEN t.temp_box12 ELSE m.box12 END,
+    box13 = CASE WHEN m.box13 IS DISTINCT FROM t.temp_box13 THEN t.temp_box13 ELSE m.box13 END,
+    box14 = CASE WHEN m.box14 IS DISTINCT FROM t.temp_box14 THEN t.temp_box14 ELSE m.box14 END,
+    box15 = CASE WHEN m.box15 IS DISTINCT FROM t.temp_box15 THEN t.temp_box15 ELSE m.box15 END,
+    box16 = CASE WHEN m.box16 IS DISTINCT FROM t.temp_box16 THEN t.temp_box16 ELSE m.box16 END,
+    box17 = CASE WHEN m.box17 IS DISTINCT FROM t.temp_box17 THEN t.temp_box17 ELSE m.box17 END,
+    box18 = CASE WHEN m.box18 IS DISTINCT FROM t.temp_box18 THEN t.temp_box18 ELSE m.box18 END,
+    box19 = CASE WHEN m.box19 IS DISTINCT FROM t.temp_box19 THEN t.temp_box19 ELSE m.box19 END,
+    box20 = CASE WHEN m.box20 IS DISTINCT FROM t.temp_box20 THEN t.temp_box20 ELSE m.box20 END,
+    box21 = CASE WHEN m.box21 IS DISTINCT FROM t.temp_box21 THEN t.temp_box21 ELSE m.box21 END,
+    box22 = CASE WHEN m.box22 IS DISTINCT FROM t.temp_box22 THEN t.temp_box22 ELSE m.box22 END,
+    box23 = CASE WHEN m.box23 IS DISTINCT FROM t.temp_box23 THEN t.temp_box23 ELSE m.box23 END,
+    box24 = CASE WHEN m.box24 IS DISTINCT FROM t.temp_box24 THEN t.temp_box24 ELSE m.box24 END,
+    box25 = CASE WHEN m.box25 IS DISTINCT FROM t.temp_box25 THEN t.temp_box25 ELSE m.box25 END,
+    box26 = CASE WHEN m.box26 IS DISTINCT FROM t.temp_box26 THEN t.temp_box26 ELSE m.box26 END,
+    box27 = CASE WHEN m.box27 IS DISTINCT FROM t.temp_box27 THEN t.temp_box27 ELSE m.box27 END,
+    box28 = CASE WHEN m.box28 IS DISTINCT FROM t.temp_box28 THEN t.temp_box28 ELSE m.box28 END,
+    box29 = CASE WHEN m.box29 IS DISTINCT FROM t.temp_box29 THEN t.temp_box29 ELSE m.box29 END,
+    box30 = CASE WHEN m.box30 IS DISTINCT FROM t.temp_box30 THEN t.temp_box30 ELSE m.box30 END,
+    modified_at = now()
+    FROM temp_product_list AS t
+    WHERE m.item_code = t.temp_part_no
+  </update>
+
+  <insert id="bulkInsertOutboundMesStock" parameterType="java.util.List">
+    INSERT INTO order_mes_stock_outbound
+    (item_code, outbound_date, out_qty, created_at, modified_at)
+    VALUES
+    <foreach collection="mesStocks" item="item" separator=",">
+      (#{item.itemCode}, #{item.outboundDate}, #{item.outQuantity}, #{item.createdDate}, #{item.modifyDate})
+    </foreach>
+    ON CONFLICT (item_code, outbound_date)
+    DO UPDATE
+    SET out_qty = EXCLUDED.out_qty
+    WHERE order_mes_stock_outbound.out_qty IS DISTINCT FROM EXCLUDED.out_qty
+  </insert>
+
+  <!-- 없는 품번 조회 -->
+  <select id="getMissingItemCodeByMesBox" resultType="java.lang.String">
+    SELECT c.item_code
+    FROM UNNEST(#{itemCodeArray, jdbcType=ARRAY}) AS C (item_code)
+    LEFT JOIN order_mes_box m ON C.item_code = m.item_code
+    WHERE m.item_code IS NULL
+  </select>
+
+  <!-- 없는 품번 조회 -->
+  <select id="getMissingItemCodeByMesStock" resultType="java.lang.String">
+    SELECT c.item_code
+    FROM UNNEST(#{itemCodeArray, jdbcType=ARRAY}) AS C (item_code)
+           LEFT JOIN order_mes_stock m ON C.item_code = m.item_code
+    WHERE m.item_code IS NULL
+  </select>
+
+  <!-- 없는 품번 조회 -->
+  <select id="getMissingItemCodeByMesStockBox" resultType="java.lang.String">
+    SELECT c.item_code
+    FROM UNNEST(#{itemCodeArray, jdbcType=ARRAY}) AS C (item_code)
+           LEFT JOIN order_mes_stock_box m ON C.item_code = m.item_code
+    WHERE m.item_code IS NULL
+  </select>
+  <!-- 전부 조회 -->
+  <select id="findAllMesBox" resultType="MesBox">
+    SELECT
+        id AS id,
+        item_code AS itemCode, box_1 AS box1, box_2 AS box2, box_3 AS box3, box_4 AS box4, box_5 AS box5,
+        created_at AS createdDate, modified_at AS modifyDate
+    FROM order_mes_box
+  </select>
+
+
+  <delete id="deleteMesOutboundStock" parameterType="java.time.LocalDate">
+    DELETE
+    FROM order_mes_stock_outbound
+    WHERE outbound_date = #{date}
+  </delete>
+  
+  <delete id="deleteSecondOutbound" parameterType="java.time.LocalDate">
+    DELETE
+    FROM order_second_outbound
+    WHERE upload_date = #{date}
+  </delete>
+</mapper>

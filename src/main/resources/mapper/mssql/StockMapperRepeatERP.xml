@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sewon.uploadservice.repository.erp.ERPStockMapper">
+
+  <select id="findStockSummaryByTargets" resultType="ERPStockRecord">
+    WITH summary AS (
+    -- 2달 전 마감 재고
+    SELECT
+    a.SiteCode AS 장소,
+    a.location AS 저장위치,
+    a.PrdCategory AS 제품군,
+    a.PartNo,
+    a.QTY
+    FROM TB_PRD_수불마감_월 AS a WITH(NOLOCK)
+    WHERE a.YYYYMM = FORMAT(DATEADD(m, -2, #{date}), 'yyyyMM')
+    AND a.PrdCategory = #{category}
+    AND a.PartNo IN
+    <foreach collection="partNoList" item="partNo" open="(" separator="," close=")">
+      #{partNo}
+    </foreach>
+    -- 👇 동적으로 생성될 조건
+    AND
+    <foreach collection="targetList" item="target" open="(" separator=" OR " close=")">
+      (a.SiteCode = #{target.siteCode} AND a.Location = #{target.location})
+    </foreach>
+
+    UNION ALL
+
+    -- 입고(+)된 내역
+    SELECT
+    a.[참조 사이트] AS 장소,
+    a.TO_Location AS 저장위치,
+    a.제품군,
+    a.[품목 번호],
+    SUM(-a.[Loc 수량 변화]) AS QTY
+    FROM TB_QAD_수불이력찾아보기_NEW AS a WITH(NOLOCK)
+    WHERE a.유효일 BETWEEN DATEADD(d, 1, EOMONTH(#{date}, -2)) AND #{date}
+    AND a.제품군 = #{category}
+    AND a.[품목 번호] IN
+    <foreach collection="partNoList" item="partNo" open="(" separator="," close=")">
+      #{partNo}
+    </foreach>
+    AND (a.[관련사이트/저장위치] LIKE '%으로%' OR a.[관련사이트/저장위치] = ':')
+    AND a.[Loc 수량 변화] != 0
+    AND a.[출하 유형] NOT IN ('S', 'M')
+    -- 👇 동적으로 생성될 조건
+    AND
+    <foreach collection="targetList" item="target" open="(" separator=" OR " close=")">
+      (a.[참조 사이트] = #{target.siteCode} AND a.TO_Location = #{target.location})
+    </foreach>
+    GROUP BY a.[참조 사이트], a.TO_Location, a.제품군, a.[품목 번호]
+
+    UNION ALL
+
+    -- 출고(-)된 내역
+    SELECT
+    a.장소 AS 장소,
+    a.[저장 위치] AS 저장위치,
+    a.제품군,
+    a.[품목 번호],
+    SUM(a.[Loc 수량 변화]) AS QTY
+    FROM TB_QAD_수불이력찾아보기_NEW AS a WITH(NOLOCK)
+    WHERE a.유효일 BETWEEN DATEADD(d, 1, EOMONTH(#{date}, -2)) AND #{date}
+    AND a.제품군 = #{category}
+    AND a.[품목 번호] IN
+    <foreach collection="partNoList" item="partNo" open="(" separator="," close=")">
+      #{partNo}
+    </foreach>
+    AND (a.[관련사이트/저장위치] LIKE '%으로%' OR a.[관련사이트/저장위치] = ':')
+    AND a.[Loc 수량 변화] != 0
+    AND a.[출하 유형] NOT IN ('S', 'M')
+    -- 👇 동적으로 생성될 조건
+    AND
+    <foreach collection="targetList" item="target" open="(" separator=" OR " close=")">
+      (a.장소 = #{target.siteCode} AND a.[저장 위치] = #{target.location})
+    </foreach>
+    GROUP BY a.장소, a.[저장 위치], a.제품군, a.[품목 번호]
+    )
+    SELECT
+    장소 AS siteCode,
+    저장위치 AS location,
+    제품군 AS category,
+    PartNo AS partNo,
+    SUM(ISNULL(qty, 0)) AS quantity,
+    #{date} AS date,
+    CASE
+    WHEN 장소 = '10' AND 저장위치 IN ('6000', '6010') THEN '검사완료'
+    WHEN 장소 = '10' AND 저장위치 IN ('5300','5320','5330','5301','5321','5331') THEN 'ERP_검사대기'
+    WHEN (장소 = '10' AND 저장위치 = '5200')
+    OR (장소 IN ('12','14','15') AND 저장위치 = '5100') THEN '국내입고대기'
+    WHEN 장소 = '10' AND 저장위치 = '6200' THEN '장기성재고'
+    WHEN 장소 = '10' AND 저장위치 IN ('AA20','AA30') THEN '고객반송'
+    ELSE '기타'
+    END as type
+    FROM summary WITH(NOLOCK)
+    GROUP BY 장소, 저장위치, 제품군, PartNo
+    HAVING SUM(ISNULL(qty, 0)) != 0
+  </select>
+</mapper>

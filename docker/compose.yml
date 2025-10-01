@@ -1,0 +1,37 @@
+services:
+  upload-service:
+    container_name: upload-backend
+    image: ghcr.io/hoonseung/upload-service:latest
+
+    environment:
+      - SECRET_KEY = ${SECRET_KEY}
+
+    ports:
+      - "9898:9898"
+
+    networks:
+      - upload_network
+
+  postgres:
+    container_name: order-postgres
+    image: postgres:14.4
+    ports:
+      - "25432:5432"
+
+    restart: on-failure
+
+    volumes:
+      - order_postgres_data:/var/lib/postgresql/data
+
+    networks:
+      - upload_network
+
+volumes:
+  order_postgres_data:
+
+networks:
+  upload_network:
+    name: upload_network
+    driver: bridge
+
+
