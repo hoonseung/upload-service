@@ -114,20 +114,23 @@
   </update>
 
   <update   id="bulkUpdateMesInboundStock"  parameterType="java.util.List">
-    WITH temp_product_list AS (
-    SELECT *
-    FROM (VALUES
-    <foreach collection="mesStocks" item="item" separator=",">
-      (#{item.factory}, #{item.itemCode}, #{item.quantity})
-    </foreach>
-    ) AS v(temp_factory, temp_item_code, temp_qty)
-    )
-    UPDATE order_mes_stock AS m SET
-    qty = CASE WHEN m.qty IS DISTINCT FROM t.temp_qty THEN t.temp_qty ELSE m.qty END,
-    modified_at = now()
-    FROM temp_product_list AS t
-    WHERE m.factory = t.temp_factory
-    AND m.item_code = t.temp_item_code
+    <if test="mesStocks != null and mesStocks.size > 0">
+      WITH temp_product_list AS (
+      SELECT *
+      FROM (VALUES
+      <foreach collection="mesStocks" item="item" separator=",">
+        (#{item.factory}, #{item.itemCode}, #{item.quantity})
+      </foreach>
+      ) AS v(temp_factory, temp_item_code, temp_qty)
+      )
+      UPDATE order_mes_stock AS m SET
+      qty = CASE WHEN m.qty IS DISTINCT FROM t.temp_qty THEN t.temp_qty ELSE m.qty END,
+      modified_at = now()
+      FROM temp_product_list AS t
+      WHERE (m.factory = t.temp_factory
+      AND m.item_code = t.temp_item_code)
+      OR (m.item_code = t.temp_item_code)
+    </if>
   </update>
 
   <update id="bulkUpdateMesInboundStockBox" parameterType="java.util.List">
@@ -186,7 +189,25 @@
     box30 = CASE WHEN m.box30 IS DISTINCT FROM t.temp_box30 THEN t.temp_box30 ELSE m.box30 END,
     modified_at = now()
     FROM temp_product_list AS t
-    WHERE m.item_code = t.temp_part_no
+    WHERE m.item_code = t.temp_part_no::text
+  </update>
+
+  <update id="bulkUpdateLineAndYraStock" parameterType="java.util.List">
+    WITH temp_stock AS (
+    SELECT * FROM(
+    VALUES
+    <foreach collection="updateStocks" item="item" separator=",">
+      (#{item.date},#{item.itemCode}, #{item.lineStock}, #{item.customerStock})
+    </foreach>
+    )
+    AS v (temp_update_date, temp_item_code, temp_line, temp_yra)
+    )
+    UPDATE order_car AS o
+    SET line = t.temp_line, yra = t.temp_yra, modified_at = now()
+    FROM temp_stock t
+    WHERE o.item_code = t.temp_item_code
+    AND o.upload_date = t.temp_update_date
+    AND o.category = '과부족'
   </update>
 
   <insert id="bulkInsertOutboundMesStock" parameterType="java.util.List">
@@ -202,7 +223,7 @@
     WHERE order_mes_stock_outbound.out_qty IS DISTINCT FROM EXCLUDED.out_qty
   </insert>
 
-  <!-- 없는 품번 조회 -->
+  <!-- car_order 품번이 없는 품번 조회 -->
   <select id="getMissingItemCodeByMesBox" resultType="java.lang.String">
     SELECT c.item_code
     FROM UNNEST(#{itemCodeArray, jdbcType=ARRAY}) AS C (item_code)
@@ -210,7 +231,7 @@
     WHERE m.item_code IS NULL
   </select>
 
-  <!-- 없는 품번 조회 -->
+  <!-- car_order 품번이 없는 품번 조회 -->
   <select id="getMissingItemCodeByMesStock" resultType="java.lang.String">
     SELECT c.item_code
     FROM UNNEST(#{itemCodeArray, jdbcType=ARRAY}) AS C (item_code)
@@ -218,7 +239,7 @@
     WHERE m.item_code IS NULL
   </select>
 
-  <!-- 없는 품번 조회 -->
+  <!-- car_order 품번이 없는 품번 조회 -->
   <select id="getMissingItemCodeByMesStockBox" resultType="java.lang.String">
     SELECT c.item_code
     FROM UNNEST(#{itemCodeArray, jdbcType=ARRAY}) AS C (item_code)
@@ -232,6 +253,14 @@
         item_code AS itemCode, box_1 AS box1, box_2 AS box2, box_3 AS box3, box_4 AS box4, box_5 AS box5,
         created_at AS createdDate, modified_at AS modifyDate
     FROM order_mes_box
+  </select>
+
+  <select id="findAllMesStock" resultType="MesInboundStock">
+    SELECT
+      id AS id,
+      factory AS factory, item_code AS itemCode, qty AS quantity,
+      created_at AS createdDate, modified_at AS modifyDate
+    FROM order_mes_stock
   </select>
 
 
