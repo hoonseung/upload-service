@@ -10,11 +10,13 @@ import static com.sewon.uploadservice.model.collection.GKey.ITEM_CODE;
 import static com.sewon.uploadservice.model.collection.GKey.PREVIOUS_DAY_RESULT;
 
 import com.sewon.uploadservice.model.collection.DKey;
+import com.sewon.uploadservice.model.collection.GKey;
 import com.sewon.uploadservice.model.collection.OutboundKey;
 import com.sewon.uploadservice.model.dto.csv.CsvData;
 import com.sewon.uploadservice.model.dto.csv.DayPlusData;
 import com.sewon.uploadservice.model.dto.csv.SecondOutboundData;
 import com.sewon.uploadservice.model.dto.csv.Ttime;
+import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -96,6 +98,26 @@ public class CsvFileParser {
                 );
             }
             return dataSet;
+        } catch (IOException e) {
+            log.error("error message: {}", e.getMessage());
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public List<UpdateLineAndCustomerStock> lineAndCustomerStockFileParsing(MultipartFile file) {
+        try (CSVParser parser = getParser(file, Charset.defaultCharset())) {
+            List<UpdateLineAndCustomerStock> dataList = new ArrayList<>();
+            for (CSVRecord csvRecord : parser.getRecords()) {
+                dataList.add(
+                    UpdateLineAndCustomerStock.of(
+                        LocalDate.parse(csvRecord.get(0)),
+                        csvRecord.get(GKey.UPDATE_ITEM_CODE.getHeader()),
+                        getIntegerByRecord(csvRecord.get(GKey.UPDATE_CONSUMER_STOCK.getHeader())),
+                        getIntegerByRecord(csvRecord.get(GKey.UPDATE_DOMESTIC_STOCK.getHeader()))
+                        )
+                );
+            }
+            return dataList;
         } catch (IOException e) {
             log.error("error message: {}", e.getMessage());
             throw new UncheckedIOException(e);

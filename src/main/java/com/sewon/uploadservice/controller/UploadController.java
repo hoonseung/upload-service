@@ -51,6 +51,16 @@ public class UploadController {
         return "success";
     }
 
+    @PostMapping("/line/customer/stock")
+    public String updateLineAndCustomerStock(@RequestParam("file") MultipartFile file){
+        String prefix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyMMdd"));
+        if (file.isEmpty() || CSVFileValidator.csvFileInValid(file, prefix)) {
+            return "fail";
+        }
+        uploadService.updateLineAndCustomerStock(file);
+        return "success";
+    }
+
 
 
 

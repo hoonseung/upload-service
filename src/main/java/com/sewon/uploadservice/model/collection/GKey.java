@@ -17,6 +17,10 @@ public enum GKey {
 
     DAY("D"),
 
+    UPDATE_ITEM_CODE("ild_part"),
+    UPDATE_CONSUMER_STOCK("ild_qty_oem_line"),
+    UPDATE_DOMESTIC_STOCK("ild_qty_oem_cust"),
+
     ;
 
     private final String header;

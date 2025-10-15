@@ -1,6 +1,7 @@
 package com.sewon.uploadservice.service;
 
 import com.sewon.uploadservice.model.dto.csv.SecondOutboundData;
+import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
 import com.sewon.uploadservice.model.dto.mes.MESInboundStockBoxRecord;
 import com.sewon.uploadservice.model.entity.CarOrder;
 import com.sewon.uploadservice.model.dto.erp.ERPStockRecord;
@@ -99,9 +100,10 @@ public class UploadService {
                 missingItemCodesByMesStockBox, 500);
 
             for (int i = 0; i < missingMesStock.size(); i += batchSize) {
-                int endIdx = Math.min(i + batchSize, missingMesStock.size());
-                List<MesInboundStock> mesStocks = missingMesStock.subList(i, endIdx);
-                List<MesInboundStockBox> mesStockBoxes = missingMesStockBox.subList(i, endIdx);
+                int stockEndIdx = Math.min(i + batchSize, missingMesStock.size());
+                int boxEndIdx = Math.min(i + batchSize, missingMesStockBox.size());
+                List<MesInboundStock> mesStocks = missingMesStock.subList(i, stockEndIdx);
+                List<MesInboundStockBox> mesStockBoxes = missingMesStockBox.subList(i, boxEndIdx);
                 carOrderMapper.bulkInsertInboundMesStock(mesStocks);
                 carOrderMapper.bulkInsertInboundMesStockBox(mesStockBoxes);
             }
@@ -115,6 +117,13 @@ public class UploadService {
             .map(SecondOutbound::from)
             .toList();
         carOrderMapper.bulkInsertSecondOutbound(outbounds);
+    }
+
+    @Transactional(transactionManager = "postgresqlTransactionManager")
+    public void updateLineAndCustomerStock(MultipartFile file) {
+        List<UpdateLineAndCustomerStock> updateLineAndCustomerStocks = csvFileParser.lineAndCustomerStockFileParsing(
+            file);
+        carOrderMapper.bulkUpdateLineAndYraStock(updateLineAndCustomerStocks);
     }
 
 
@@ -378,6 +387,7 @@ public class UploadService {
             .modifyDate(LocalDateTime.now())
             .build();
     }
+
 
 }
 

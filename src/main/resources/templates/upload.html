@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <title>파일 업로드</title>
-  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css?v=20251015}">
 </head>
 <body>
 <div class="upload-container">
@@ -35,10 +35,21 @@
   <h2 class="section-title">2차 업로드</h2>
   <form th:action="@{/upload/outbound/second}" method="post" enctype="multipart/form-data">
     <div class="form-group">
-      <label for="file">추가 파일:</label>
-      <input type="file" id="file" name="file">
+      <label for="secondFile">추가 파일:</label>
+      <input type="file" id="secondFile" name="file">
     </div>
     <button type="submit" class="upload-btn secondary">2차 업로드</button>
+  </form>
+
+  <hr>
+
+  <h2 class="section-title">고객, 국내 재고 업데이트</h2>
+  <form th:action="@{/upload/line/customer/stock}" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+      <label for="updateFile">업데이트 파일:</label>
+      <input type="file" id="updateFile" name="file">
+    </div>
+    <button type="submit" class="upload-btn update">고객, 국내 재고 업데이트</button>
   </form>
 </div>
 </body>

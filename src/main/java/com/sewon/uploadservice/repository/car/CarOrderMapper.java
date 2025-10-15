@@ -1,5 +1,6 @@
 package com.sewon.uploadservice.repository.car;
 
+import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
 import com.sewon.uploadservice.model.entity.CarOrder;
 import com.sewon.uploadservice.model.dto.mes.MESInboundStockRecord;
 import com.sewon.uploadservice.model.entity.MesBox;
@@ -37,6 +38,8 @@ public interface CarOrderMapper {
 
     void bulkUpdateMesInboundStockBox(@Param("mesStockBoxes") List<MesInboundStockBox> mesStocks);
 
+    void bulkUpdateLineAndYraStock(@Param("updateStocks") List<UpdateLineAndCustomerStock> updateStocks);
+
     List<String> getMissingItemCodeByMesBox(@Param("itemCodeArray") String[] itemCodeArray);
 
     List<String> getMissingItemCodeByMesStock(@Param("itemCodeArray") String[] itemCodeArray);
@@ -44,6 +47,8 @@ public interface CarOrderMapper {
     List<String> getMissingItemCodeByMesStockBox(@Param("itemCodeArray") String[] itemCodeArray);
 
     List<MesBox> findAllMesBox();
+
+    List<MesInboundStock> findAllMesStock();
 
     void deleteMesOutboundStock(@Param("date")LocalDate date);
 

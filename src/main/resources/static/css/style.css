@@ -27,7 +27,7 @@ body {
 
 .section-title::before {
   content: "◆";
-  color: #4caf50;
+  color: #000;
   margin-right: 8px;
   font-size: 1rem;
 }
@@ -89,8 +89,16 @@ small {
   background: #1976d2;
 }
 
+.upload-btn.update {
+  background: #ff9800;
+}
+
+.upload-btn.secondary:hover {
+  background: #f57c00;
+}
+
 hr {
-  margin: 30px 0;
+  margin: 50px 0; /* 🔹 섹션 간 간격을 더 넓힘 */
   border: none;
   border-top: 1px solid #ddd;
 }

@@ -13,10 +13,6 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface MESStockMapper {
 
-    List<MESInboundBoxStockRecord> findInboundStockSummaryByTargets
-        (@Param("factory") String factory,
-            @Param("itemCode") String itemCode);
-
     List<MESInboundBoxStockRecord> findInboundWaitingStockSummaryByTargetsBulk
         (@Param("factory") String factory,
             @Param("itemCodeList") List<String> itemCodeList);
@@ -30,6 +26,10 @@ public interface MESStockMapper {
             @Param("itemCodeList") List<String> itemCodeList);
 
     List<MESInboundStockRecord> findInboundStockSummaryByTargetsBulk
+        (@Param("factory") String factory,
+            @Param("itemCodeList") List<String> itemCodeList);
+
+    List<MESInboundStockRecord> findInboundStockSummaryByTargetsBulkUpdateOnly
         (@Param("factory") String factory,
             @Param("itemCodeList") List<String> itemCodeList);
 
