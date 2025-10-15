@@ -18,9 +18,7 @@ import static com.sewon.uploadservice.model.collection.ERPLocation.WEIHAI_IMPORT
 
 import com.sewon.uploadservice.model.dto.erp.ERPStockRecord;
 import com.sewon.uploadservice.model.dto.mes.MESInboundAllBoxStockRecord;
-import com.sewon.uploadservice.model.dto.mes.MESInboundBoxStockRecord;
 import com.sewon.uploadservice.model.dto.mes.MESInboundStockBoxRecord;
-import com.sewon.uploadservice.model.dto.mes.MESInboundStockRecord;
 import com.sewon.uploadservice.model.dto.mes.MESOutboundStockRecord;
 import com.sewon.uploadservice.model.dto.mes.MesBoxData;
 import com.sewon.uploadservice.model.entity.MesInboundStock;
@@ -32,7 +30,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -49,21 +46,12 @@ public class StockSearchService {
     private static final String FACTORY = "ZA";
     private static final String CATEGORY = "1000";
 
-    public Optional<ERPStockRecord> findStockSummary(LocalDate date, String site, String location,
-        String partNo, String category) {
-        return eRPStockMapper.findStockSummary(date, site, location, partNo, category);
-    }
 
     // 해당 품번 기말 재고 조회
     // 사내, 검사, CT, 장기성, 반송
     public List<ERPStockRecord> findStockSummaryByTargets(LocalDate date,
         List<TargetLocationDto> targetList, List<String> partNoList, String category) {
         return eRPStockMapper.findStockSummaryByTargets(date, targetList, partNoList, category);
-    }
-
-    // 해당 품번 MES 상 검사 대기인 상태 정보 조회
-    public List<MESInboundBoxStockRecord> findInboundStockSummaryByTargets(String itemCode) {
-        return mesStockMapper.findInboundStockSummaryByTargets(FACTORY, itemCode);
     }
 
     public List<ERPStockRecord> getBulkErpStock(LocalDate date, List<String> partNoList) {
@@ -144,6 +132,11 @@ public class StockSearchService {
 
     public List<MesInboundStock> getBulkMESStock(List<String> itemCode) {
         return mesStockMapper.findInboundStockSummaryByTargetsBulk(FACTORY, itemCode)
+            .stream().map(MesInboundStock::from).toList();
+    }
+
+    public List<MesInboundStock> getBulkMESStockUpdateOnly(List<String> itemCode) {
+        return mesStockMapper.findInboundStockSummaryByTargetsBulkUpdateOnly(FACTORY, itemCode)
             .stream().map(MesInboundStock::from).toList();
     }
 

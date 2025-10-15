@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,23 +25,6 @@ class StockSearchServiceTest {
     @Autowired
     private StockSearchService stockSearchService;
 
-    @DisplayName("완제품 조회 단건, 실행 시 암호화 비밀 키 환경 변수 주입 필요")
-    @Test
-    void testFindStockSummary() {
-        LocalDate date = LocalDate.of(2025, 9, 17);
-        String site = "10";
-        String location = "6000";
-        String partNo = "91000-L1930";
-        String category = "1000";
-
-        Optional<ERPStockRecord> result =
-            stockSearchService.findStockSummary(date, site, location, partNo, category);
-
-        assertThat(result).isNotNull().isPresent();  // AssertJ 사용
-        result.ifPresent(r -> {
-            System.out.println("조회 결과 = " + r);
-        });
-    }
 
     @DisplayName("완제품 조회, 실행 시 암호화 비밀 키 환경 변수 주입 필요")
     @Test
@@ -135,18 +119,6 @@ class StockSearchServiceTest {
 
         result.forEach(data ->
         System.out.println("조회 결과 = " + data));
-    }
-
-    @DisplayName("MES 입고 대기 상태인 재고 조회")
-    @Test
-    void testFindInboundStockSummaryByTargets() {
-        String itemCode = "91215-O6090";
-        List<MESInboundBoxStockRecord> result = stockSearchService.findInboundStockSummaryByTargets(
-            itemCode);
-
-        assertThat(result).isNotNull();
-
-        result.forEach(item -> System.out.println("조회 결과 = " + item));
     }
 
 //    @Disabled

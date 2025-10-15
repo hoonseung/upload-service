@@ -13,7 +13,7 @@ public class GlobalControllerAdvice {
 
     @ExceptionHandler(RuntimeException.class)
     public String handelRuntimeException(RuntimeException ex){
-        log.error("occurs error.. message: {}, trace: {}", ex.getMessage(), ex.getStackTrace());
+        log.error("occurs error.. message: {}", ex.getMessage(), ex);
         return "error/400error";
     }
 
@@ -26,7 +26,7 @@ public class GlobalControllerAdvice {
 
     @ExceptionHandler(Exception.class)
     public String handelException(Exception ex){
-        log.error("occurs error.. message: {}", ex.getMessage());
+        log.error("occurs error.. message: {}", ex.getMessage(), ex);
         return "error/500error";
     }
 

@@ -26,7 +26,7 @@ public class MesInboundStock {
 
     public static MesInboundStock from(MESInboundStockRecord stockRecord) {
         return new MesInboundStock(null, stockRecord.factory(), stockRecord.itemCode(),
-            stockRecord.quantity(),
+            stockRecord.quantity() == null ? 0 : stockRecord.quantity(),
             LocalDateTime.now(), LocalDateTime.now()
         );
     }

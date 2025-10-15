@@ -11,13 +11,6 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface ERPStockMapper {
 
-    Optional<ERPStockRecord> findStockSummary
-        (@Param("date") LocalDate date,
-            @Param("site") String site,
-            @Param("location") String location,
-            @Param("partNo") String partNo,
-            @Param("category") String category);
-
     List<ERPStockRecord> findStockSummaryByTargets1
         (@Param("date") LocalDate date,
             @Param("targetList") List<TargetLocationDto> targetLocationDtoList,
