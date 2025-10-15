@@ -50,13 +50,14 @@
     GROUP BY A.STATE, A.BOX_CNT, C.CARCODE, C.ITEMNAME, T.ITEMCODE, A.ALC
     ORDER BY C.CARCODE, T.ITEMCODE, QTY DESC
   </select>
-  
+
+  <!--일반조회용-->
   <select id="findInboundStockSummaryByTargetsBulk" resultType="MESInboundStockRecord">
     SELECT
     TRIM(A.STATE) AS FACTORY,
     TRIM(A.LGORT) AS LOCATION,
     TRIM(T.ITEMCODE) AS ITEMCODE,
-    NULLIF(COUNT(A.ITEMCODE), 0) AS QUANTITY
+    COALESCE(COUNT(A.ITEMCODE), 0) AS QUANTITY
     FROM (
     VALUES
     <foreach collection="itemCodeList" item="itemCode" separator=",">
@@ -65,6 +66,26 @@
     ) AS T (ITEMCODE)
     LEFT JOIN L_STORAGE_IPGO2 A ON A.ITEMCODE = T.ITEMCODE
     WHERE A.FACTORY = #{factory}
+    AND A.RE_CHECK = '0'
+    AND A.LGORT LIKE '6%'
+    GROUP BY A.STATE, A.FACTORY, T.ITEMCODE, A.LGORT;
+  </select>
+
+  <!--업데이트할 때 조회용-->
+  <select id="findInboundStockSummaryByTargetsBulkUpdateOnly" resultType="MESInboundStockRecord">
+    SELECT
+    TRIM(A.STATE) AS FACTORY,
+    COALESCE(TRIM(A.LGORT),'6000') AS LOCATION,
+    TRIM(T.ITEMCODE) AS ITEMCODE,
+    COALESCE(COUNT(A.ITEMCODE), 0) AS QUANTITY
+    FROM (
+    VALUES
+    <foreach collection="itemCodeList" item="itemCode" separator=",">
+      (#{itemCode})
+    </foreach>
+    ) AS T (ITEMCODE)
+    LEFT JOIN L_STORAGE_IPGO2 A ON A.ITEMCODE = T.ITEMCODE
+    AND A.FACTORY = #{factory}
     AND A.RE_CHECK = '0'
     AND A.LGORT LIKE '6%'
     GROUP BY A.STATE, A.FACTORY, T.ITEMCODE, A.LGORT;
