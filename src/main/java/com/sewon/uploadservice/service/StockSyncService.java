@@ -1,6 +1,7 @@
 package com.sewon.uploadservice.service;
 
 import com.sewon.uploadservice.model.entity.MesBox;
+import com.sewon.uploadservice.model.entity.MesInboundStock;
 import com.sewon.uploadservice.model.entity.MesOutboundStock;
 import com.sewon.uploadservice.repository.car.CarOrderMapper;
 import com.sewon.uploadservice.repository.mes.MESStockMapper;
@@ -27,14 +28,55 @@ public class StockSyncService {
     // 월요일 ~ 토요일 오전 8시 ~ 오후 9시까지 5분 주기로 수행
     // 검사장 검사대기, 포장완료
     // 영업 입고 수량
-    @Scheduled(cron = "0 */5 8-21 * * 1-6")
+    @Scheduled(cron = "0 */1 8-21 * * 1-6")
     @Transactional(transactionManager = "postgresqlTransactionManager")
-    public void asyncMesWaitingStock() {
+    public void asyncMesWaitingBox() {
         List<String> uniqueItemCode = carOrderMapper.findAllMesBox()
             .stream().map(MesBox::getItemCode)
             .distinct()
             .toList();
+        List<List<String>> itemCodes = getLists(uniqueItemCode);
+        // 청크 단위 만큼 수행
+        List<CompletableFuture<Void>> mesFutures = new ArrayList<>();
+        itemCodes.forEach(codes ->
+                mesFutures.add(CompletableFuture.supplyAsync(
+                        () -> stockSearchService.getBulkMESAllBox(codes))
+                    .thenAccept(box ->
+                        carOrderMapper.bulkUpdateMesBox(box.values().stream().toList())
+                    )
+                )
+        );
+
+        CompletableFuture.allOf(mesFutures.toArray(CompletableFuture[]::new))
+            .exceptionally(ex -> {
+                    log.error("Bulk mex box query failed: {}", ex.getMessage());
+                    return null;
+                }
+            )
+            .join();
+        log.info("asyncMesWaitingBox update success time: {}", LocalDateTime.now());
+    }
+
+    private static List<List<String>> getLists(List<String> uniqueItemCode) {
         List<List<String>> itemCodes = new ArrayList<>();
+        int chunkSize = 500;
+        for (int i = 0; i < uniqueItemCode.size(); i += chunkSize) {
+            itemCodes.add(uniqueItemCode.subList(i,
+                    Math.min(i + chunkSize, uniqueItemCode.size())
+                )
+            );
+        }
+        return itemCodes;
+    }
+
+    @Scheduled(cron = "0 */1 8-21 * * 1-6")
+    @Transactional(transactionManager = "postgresqlTransactionManager")
+    public void asyncMesWaitingStock() {
+        List<String> uniqueItemCode = carOrderMapper.findAllMesStock()
+            .stream().map(MesInboundStock::getItemCode)
+            .distinct()
+            .toList();
+        List<List<String>> itemCodes = getLists(uniqueItemCode);
         int chunkSize = 500;
         for (int i = 0; i < uniqueItemCode.size(); i += chunkSize) {
             itemCodes.add(uniqueItemCode.subList(i,
@@ -47,18 +89,12 @@ public class StockSyncService {
         List<CompletableFuture<Void>> mesFutures = new ArrayList<>();
         itemCodes.forEach(codes -> {
                 mesFutures.add(CompletableFuture.supplyAsync(
-                        () -> stockSearchService.getBulkMESAllBox(codes))
-                    .thenAccept(box ->
-                        carOrderMapper.bulkUpdateMesBox(box.values().stream().toList())
-                    )
-                );
-                mesFutures.add(CompletableFuture.supplyAsync(
-                        () -> stockSearchService.getBulkMESStock(codes))
+                        () -> stockSearchService.getBulkMESStockUpdateOnly(codes))
                     .thenAccept(carOrderMapper::bulkUpdateMesInboundStock)
                 );
 
                 mesFutures.add(CompletableFuture.supplyAsync(
-                    () -> stockSearchService.getBulkMESStockBox(codes))
+                        () -> stockSearchService.getBulkMESStockBox(codes))
                     .thenAccept(carOrderMapper::bulkUpdateMesInboundStockBox)
                 );
             }
@@ -66,13 +102,14 @@ public class StockSyncService {
 
         CompletableFuture.allOf(mesFutures.toArray(CompletableFuture[]::new))
             .exceptionally(ex -> {
-                    log.error("Bulk ERP stock query failed: {}", ex.getMessage());
+                    log.error("Bulk mes stock query failed: {}", ex.getMessage());
                     return null;
                 }
             )
             .join();
         log.info("asyncMesWaitingStock update success time: {}", LocalDateTime.now());
     }
+
 
     // 월요일 ~ 토요일 오전 9시 ~ 오후 9시까지 5분 주기로 수행
     // 영업 출고 수량
@@ -88,7 +125,6 @@ public class StockSyncService {
         if (stocks.isEmpty()) {
             return;
         }
-        carOrderMapper.deleteMesOutboundStock(LocalDate.now().minusDays(1));
         carOrderMapper.bulkInsertOutboundMesStock(stocks);
         log.info("asyncMesOutboundStock update success time: {}", LocalDateTime.now());
     }
@@ -96,7 +132,18 @@ public class StockSyncService {
     // 매일 오전 8시 삭제 수행
     @Scheduled(cron = "0 0 8 * * *")
     @Transactional(transactionManager = "postgresqlTransactionManager")
+    public void deleteOutbound(){
+        carOrderMapper.deleteMesOutboundStock(LocalDate.now().minusDays(1));
+        log.info("deleteMesOutboundStock success time: {}", LocalDateTime.now());
+    }
+
+
+    // 매일 오전 8시 삭제 수행
+    @Scheduled(cron = "0 0 8 * * *")
+    @Transactional(transactionManager = "postgresqlTransactionManager")
     public void deleteSecondOutbound(){
         carOrderMapper.deleteSecondOutbound(LocalDate.now().minusDays(1));
+        log.info("deleteSecondOutbound success time: {}", LocalDateTime.now());
     }
+
 }
