@@ -141,9 +141,9 @@ public class StockSyncService {
     // 매일 오전 8시 삭제 수행
     @Scheduled(cron = "0 0 8 * * *")
     @Transactional(transactionManager = "postgresqlTransactionManager")
-    public void deleteSecondOutbound(){
-        carOrderMapper.deleteSecondOutbound(LocalDate.now().minusDays(1));
-        log.info("deleteSecondOutbound success time: {}", LocalDateTime.now());
+    public void deleteOutboundTarget(){
+        carOrderMapper.deleteOutboundTarget(LocalDate.now().minusDays(1));
+        log.info("deleteOutboundTarget success time: {}", LocalDateTime.now());
     }
 
 }

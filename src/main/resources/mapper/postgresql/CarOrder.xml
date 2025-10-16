@@ -3,19 +3,46 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.sewon.uploadservice.repository.car.CarOrderMapper">
-  <insert id="bulkInsertSecondOutbound" parameterType="java.util.List">
-    INSERT INTO order_second_outbound (
-    item_code, qty, upload_date,created_at, modified_at
+  <insert id="bulkInsertOutboundTarget" parameterType="java.util.List">
+    INSERT INTO order_outbound_target_stock (
+    item_code, em_qty, first_qty, second_qty, d3_qty,
+    upload_date,created_at, modified_at
     ) VALUES
     <foreach collection="outbounds" item="item" separator=",">
-      (#{item.itemCode}, #{item.quantity},
+      (#{item.itemCode},
+      #{item.emQuantity}, #{item.firstQuantity}, #{item.secondQuantity}, #{item.dPlus3Quantity},
       #{item.uploadDate},
       #{item.createdDate}, #{item.modifyDate})
     </foreach>
     ON CONFLICT (item_code, upload_date)
     DO UPDATE
-    SET qty = EXCLUDED.qty, modified_at = now()
-    WHERE order_second_outbound.qty IS DISTINCT FROM EXCLUDED.qty
+    SET
+    em_qty = CASE
+    WHEN order_outbound_target_stock.em_qty IS DISTINCT FROM EXCLUDED.em_qty
+    THEN EXCLUDED.em_qty
+    ELSE order_outbound_target_stock.em_qty
+    END,
+    first_qty = CASE
+    WHEN order_outbound_target_stock.first_qty IS DISTINCT FROM EXCLUDED.first_qty
+    THEN EXCLUDED.first_qty
+    ELSE order_outbound_target_stock.first_qty
+    END,
+    second_qty = CASE
+    WHEN order_outbound_target_stock.second_qty IS DISTINCT FROM EXCLUDED.second_qty
+    THEN EXCLUDED.second_qty
+    ELSE order_outbound_target_stock.second_qty
+    END,
+    d3_qty = CASE
+    WHEN order_outbound_target_stock.d3_qty IS DISTINCT FROM EXCLUDED.d3_qty
+    THEN EXCLUDED.d3_qty
+    ELSE order_outbound_target_stock.d3_qty
+    END,
+    modified_at = now()
+    WHERE
+    order_outbound_target_stock.em_qty IS DISTINCT FROM EXCLUDED.em_qty
+    OR order_outbound_target_stock.first_qty IS DISTINCT FROM EXCLUDED.first_qty
+    OR order_outbound_target_stock.second_qty IS DISTINCT FROM EXCLUDED.second_qty
+    OR order_outbound_target_stock.d3_qty IS DISTINCT FROM EXCLUDED.d3_qty
   </insert>
   <!-- 벌크 row insert -->
   <insert id="bulkInsertCarOrder"  parameterType="java.util.List">
@@ -270,9 +297,9 @@
     WHERE outbound_date = #{date}
   </delete>
   
-  <delete id="deleteSecondOutbound" parameterType="java.time.LocalDate">
+  <delete id="deleteOutboundTarget" parameterType="java.time.LocalDate">
     DELETE
-    FROM order_second_outbound
+    FROM order_outbound_target_stock
     WHERE upload_date = #{date}
   </delete>
 </mapper>

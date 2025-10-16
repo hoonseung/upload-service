@@ -11,10 +11,9 @@ import static com.sewon.uploadservice.model.collection.GKey.PREVIOUS_DAY_RESULT;
 
 import com.sewon.uploadservice.model.collection.DKey;
 import com.sewon.uploadservice.model.collection.GKey;
-import com.sewon.uploadservice.model.collection.OutboundKey;
 import com.sewon.uploadservice.model.dto.csv.CsvData;
 import com.sewon.uploadservice.model.dto.csv.DayPlusData;
-import com.sewon.uploadservice.model.dto.csv.SecondOutboundData;
+import com.sewon.uploadservice.model.dto.csv.OutboundTargetData;
 import com.sewon.uploadservice.model.dto.csv.Ttime;
 import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
 import java.io.IOException;
@@ -86,14 +85,17 @@ public class CsvFileParser {
         return ttimeList;
     }
 
-    public Set<SecondOutboundData> secondOutboundFileParsing(MultipartFile file, LocalDate date) {
+    public Set<OutboundTargetData> OutboundTargetFileParsing(MultipartFile file, LocalDate date) {
         try (CSVParser parser = getParser(file, Charset.defaultCharset())) {
-            Set<SecondOutboundData> dataSet = new HashSet<>();
+            Set<OutboundTargetData> dataSet = new HashSet<>();
             for (CSVRecord csvRecord : parser.getRecords()) {
                 dataSet.add(
-                    SecondOutboundData.of(
+                    OutboundTargetData.of(
                         csvRecord.get(0),
                         getIntegerByRecord(csvRecord.get(1)),
+                        getIntegerByRecord(csvRecord.get(2)),
+                        getIntegerByRecord(csvRecord.get(3)),
+                        getIntegerByRecord(csvRecord.get(4)),
                         date)
                 );
             }
@@ -114,7 +116,7 @@ public class CsvFileParser {
                         csvRecord.get(GKey.UPDATE_ITEM_CODE.getHeader()),
                         getIntegerByRecord(csvRecord.get(GKey.UPDATE_CONSUMER_STOCK.getHeader())),
                         getIntegerByRecord(csvRecord.get(GKey.UPDATE_DOMESTIC_STOCK.getHeader()))
-                        )
+                    )
                 );
             }
             return dataList;
@@ -186,6 +188,9 @@ public class CsvFileParser {
 
     private Integer getIntegerByRecord(String value) {
         if (value != null) {
+            if (value.isBlank()) {
+                return 0;
+            }
             return Integer.valueOf(value);
         }
         log.error("type parsing error");

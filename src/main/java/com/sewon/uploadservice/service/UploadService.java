@@ -1,11 +1,8 @@
 package com.sewon.uploadservice.service;
 
-import com.sewon.uploadservice.model.dto.csv.SecondOutboundData;
 import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
-import com.sewon.uploadservice.model.dto.mes.MESInboundStockBoxRecord;
 import com.sewon.uploadservice.model.entity.CarOrder;
 import com.sewon.uploadservice.model.dto.erp.ERPStockRecord;
-import com.sewon.uploadservice.model.dto.mes.MESInboundStockRecord;
 import com.sewon.uploadservice.model.entity.MesBox;
 import com.sewon.uploadservice.model.entity.MesInboundStock;
 import com.sewon.uploadservice.model.collection.ERPLocation;
@@ -16,7 +13,7 @@ import com.sewon.uploadservice.model.dto.erp.ErpStockData;
 import com.sewon.uploadservice.model.dto.mes.MesBoxData;
 import com.sewon.uploadservice.model.dto.csv.Ttime;
 import com.sewon.uploadservice.model.entity.MesInboundStockBox;
-import com.sewon.uploadservice.model.entity.SecondOutbound;
+import com.sewon.uploadservice.model.entity.OutboundTarget;
 import com.sewon.uploadservice.repository.car.CarOrderMapper;
 import com.sewon.uploadservice.model.dto.erp.TargetLocationDto;
 import java.time.LocalDate;
@@ -111,12 +108,12 @@ public class UploadService {
     }
 
     @Transactional(transactionManager = "postgresqlTransactionManager")
-    public void secondOutboundUpload(MultipartFile file, LocalDate date) {
-        List<SecondOutbound> outbounds = csvFileParser.secondOutboundFileParsing(file, date)
+    public void outboundTargetUpload(MultipartFile file, LocalDate date) {
+        List<OutboundTarget> outbounds = csvFileParser.OutboundTargetFileParsing(file, date)
             .stream()
-            .map(SecondOutbound::from)
+            .map(OutboundTarget::from)
             .toList();
-        carOrderMapper.bulkInsertSecondOutbound(outbounds);
+        carOrderMapper.bulkInsertOutboundTarget(outbounds);
     }
 
     @Transactional(transactionManager = "postgresqlTransactionManager")

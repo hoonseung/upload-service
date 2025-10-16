@@ -44,10 +44,10 @@ public class UploadController {
     @PostMapping("/outbound/second")
     public String upload2andFile(@RequestParam("file") MultipartFile file){
         String prefix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyMMdd"));
-        if (file.isEmpty() || CSVFileValidator.csvFileInValid(file, prefix)) {
+        if (file.isEmpty() || CSVFileValidator.csvFileInValid(file, prefix + "-2차")) {
             return "fail";
         }
-        uploadService.secondOutboundUpload(file, LocalDate.now());
+        uploadService.outboundTargetUpload(file, LocalDate.now());
         return "success";
     }
 

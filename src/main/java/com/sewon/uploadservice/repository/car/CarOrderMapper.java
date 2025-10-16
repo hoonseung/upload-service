@@ -2,13 +2,12 @@ package com.sewon.uploadservice.repository.car;
 
 import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
 import com.sewon.uploadservice.model.entity.CarOrder;
-import com.sewon.uploadservice.model.dto.mes.MESInboundStockRecord;
 import com.sewon.uploadservice.model.entity.MesBox;
 import com.sewon.uploadservice.model.entity.MesInboundStockBox;
 import com.sewon.uploadservice.model.entity.MesInboundStock;
 import com.sewon.uploadservice.model.dto.mes.MesBoxData;
 import com.sewon.uploadservice.model.entity.MesOutboundStock;
-import com.sewon.uploadservice.model.entity.SecondOutbound;
+import com.sewon.uploadservice.model.entity.OutboundTarget;
 import java.time.LocalDate;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
@@ -30,7 +29,7 @@ public interface CarOrderMapper {
 
     void bulkInsertOutboundMesStock(@Param("mesStocks") List<MesOutboundStock> mesStocks);
 
-    void bulkInsertSecondOutbound(@Param("outbounds") List<SecondOutbound> outbounds);
+    void bulkInsertOutboundTarget(@Param("outbounds") List<OutboundTarget> outbounds);
 
     void bulkUpdateMesBox(@Param("mesBoxes") List<MesBoxData> mesBoxes);
 
@@ -52,5 +51,5 @@ public interface CarOrderMapper {
 
     void deleteMesOutboundStock(@Param("date")LocalDate date);
 
-    void deleteSecondOutbound(@Param("date")LocalDate date);
+    void deleteOutboundTarget(@Param("date")LocalDate date);
 }
