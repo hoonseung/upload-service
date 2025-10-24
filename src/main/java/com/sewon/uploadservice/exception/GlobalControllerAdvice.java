@@ -1,33 +1,34 @@
 package com.sewon.uploadservice.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @Slf4j
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalControllerAdvice {
 
 
     @ExceptionHandler(RuntimeException.class)
-    public String handelRuntimeException(RuntimeException ex){
+    public ResponseEntity<String> handelRuntimeException(RuntimeException ex){
         log.error("occurs error.. message: {}", ex.getMessage(), ex);
-        return "error/400error";
+        return ResponseEntity.badRequest().build();
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public String handleMaxSizeException(MaxUploadSizeExceededException ex, Model model) {
+    public ResponseEntity<String> handleMaxSizeException(MaxUploadSizeExceededException ex, Model model) {
         log.error("occurs error.. message: {}", ex.getMessage());
-        model.addAttribute("message", "업로드 가능한 최대 파일 크기를 초과했습니다.");
-        return"error/400error";
+        return ResponseEntity.badRequest().body("업로드 가능한 최대 파일 크기를 초과했습니다.");
     }
 
     @ExceptionHandler(Exception.class)
-    public String handelException(Exception ex){
+    public ResponseEntity<String> handelException(Exception ex){
         log.error("occurs error.. message: {}", ex.getMessage(), ex);
-        return "error/500error";
+        return  ResponseEntity.internalServerError().build();
     }
 
 }
