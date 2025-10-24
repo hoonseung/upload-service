@@ -55,6 +55,9 @@ public class CsvFileParser {
 
     public List<Ttime> dFileParsing(List<MultipartFile> files) {
         List<Ttime> ttimeList = new ArrayList<>();
+        if (CSVFileValidator.filesEmptyCheck(files)){
+            return ttimeList;
+        }
         for (MultipartFile file : files) {
             if (isEnableParse(file.getOriginalFilename(), "d-")) {
                 try (CSVParser csvReader = getParser(file, Charset.forName("EUC-KR"))) {

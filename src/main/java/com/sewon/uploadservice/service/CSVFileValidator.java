@@ -11,7 +11,7 @@ public abstract class CSVFileValidator {
     }
 
     public static boolean csvFileListInValid(List<MultipartFile> files, String prefix) {
-        if (files.isEmpty()) {
+        if (filesEmptyCheck(files)) {
             return true;
         } else {
             for (MultipartFile file : files) {
@@ -24,7 +24,7 @@ public abstract class CSVFileValidator {
     }
 
     public static boolean csvFileInValid(MultipartFile file, String prefix) {
-        if (Objects.isNull(file)) {
+        if (fileEmptyCheck(file)) {
             return true;
         } else {
             return csvInValid(file, prefix);
@@ -40,5 +40,13 @@ public abstract class CSVFileValidator {
             || !filename.startsWith(prefix)
             || !filename.toLowerCase().endsWith(".csv")
             || !contentType.equals("text/csv");
+    }
+
+    public static boolean fileEmptyCheck(MultipartFile file){
+        return Objects.isNull(file) || file.isEmpty();
+    }
+
+    public static boolean filesEmptyCheck(List<MultipartFile> files){
+        return Objects.isNull(files) || files.isEmpty();
     }
 }

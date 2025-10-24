@@ -190,6 +190,9 @@ public class UploadService {
 
     private List<CsvData> parsePlan(List<MultipartFile> files) {
         List<CsvData> csvDataList = new ArrayList<>();
+        if (CSVFileValidator.filesEmptyCheck(files)) {
+            return csvDataList;
+        }
         for (MultipartFile file : files) {
             String name = file.getOriginalFilename();
             if (Objects.nonNull(name)) {
