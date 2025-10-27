@@ -2,9 +2,11 @@ package com.sewon.uploadservice.controller;
 
 import static com.sewon.uploadservice.service.CSVFileValidator.csvFileInValid;
 import static com.sewon.uploadservice.service.CSVFileValidator.csvFileListInValid;
+import static com.sewon.uploadservice.service.CSVFileValidator.csvInValidByPart;
 import static com.sewon.uploadservice.service.CSVFileValidator.fileEmptyCheck;
 import static com.sewon.uploadservice.service.CSVFileValidator.filesEmptyCheck;
 
+import com.sewon.uploadservice.service.CSVFileValidator;
 import com.sewon.uploadservice.service.UploadService;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -68,7 +70,14 @@ public class UploadController {
         return ResponseEntity.ok().body("success");
     }
 
-
-
-
+    @PostMapping("/v1/upload/operation/plan")
+    public ResponseEntity<String> uploadingOperationPlanFile(
+        @RequestParam("file") MultipartFile file,
+        @RequestParam("date") LocalDate date) {
+        if (fileEmptyCheck(file) || csvInValidByPart(file, "운영계획")) {
+            return ResponseEntity.badRequest().body("fail");
+        }
+        uploadService.operationPlanUpload(file, date);
+        return ResponseEntity.ok().body("success");
+    }
 }

@@ -42,6 +42,16 @@ public abstract class CSVFileValidator {
             || !contentType.equals("text/csv");
     }
 
+    public static boolean csvInValidByPart(MultipartFile file, String part) {
+        String contentType = file.getContentType();
+        String filename = file.getOriginalFilename();
+        return contentType == null
+            || filename == null
+            || !filename.contains(part)
+            || !filename.toLowerCase().endsWith(".csv")
+            || !contentType.equals("text/csv");
+    }
+
     public static boolean fileEmptyCheck(MultipartFile file){
         return Objects.isNull(file) || file.isEmpty();
     }

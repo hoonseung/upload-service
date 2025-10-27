@@ -13,6 +13,7 @@ import com.sewon.uploadservice.model.collection.DKey;
 import com.sewon.uploadservice.model.collection.GKey;
 import com.sewon.uploadservice.model.dto.csv.CsvData;
 import com.sewon.uploadservice.model.dto.csv.DayPlusData;
+import com.sewon.uploadservice.model.dto.csv.OperationPlan;
 import com.sewon.uploadservice.model.dto.csv.OutboundTargetData;
 import com.sewon.uploadservice.model.dto.csv.Ttime;
 import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
@@ -119,6 +120,39 @@ public class CsvFileParser {
                         csvRecord.get(GKey.UPDATE_ITEM_CODE.getHeader()),
                         getIntegerByRecord(csvRecord.get(GKey.UPDATE_CONSUMER_STOCK.getHeader())),
                         getIntegerByRecord(csvRecord.get(GKey.UPDATE_DOMESTIC_STOCK.getHeader()))
+                    )
+                );
+            }
+            return dataList;
+        } catch (IOException e) {
+            log.error("error message: {}", e.getMessage());
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public List<OperationPlan> parsingOperationPlanFile (MultipartFile file, LocalDate date) {
+        try (CSVParser parser = getParser(file, Charset.defaultCharset())) {
+            List<OperationPlan> dataList = new ArrayList<>();
+            for (CSVRecord csvRecord : parser.getRecords()) {
+                dataList.add(
+                    OperationPlan.of(
+                        LocalDate.parse(csvRecord.get(0)),
+                        csvRecord.get(1),
+                        csvRecord.get(2),
+                        csvRecord.get(3),
+                        csvRecord.get(4),
+                        csvRecord.get(5),
+                        csvRecord.get(6),
+                        csvRecord.get(7),
+                        getIntegerByRecord(csvRecord.get(8)),
+                        getIntegerByRecord(csvRecord.get(9)),
+                        getIntegerByRecord(csvRecord.get(10)),
+                        getIntegerByRecord(csvRecord.get(11)),
+                        getIntegerByRecord(csvRecord.get(12)),
+                        csvRecord.get(13),
+                        csvRecord.get(14),
+                        csvRecord.get(15),
+                        date
                     )
                 );
             }

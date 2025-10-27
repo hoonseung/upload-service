@@ -7,6 +7,7 @@ import com.sewon.uploadservice.model.entity.MesInboundStockBox;
 import com.sewon.uploadservice.model.entity.MesInboundStock;
 import com.sewon.uploadservice.model.dto.mes.MesBoxData;
 import com.sewon.uploadservice.model.entity.MesOutboundStock;
+import com.sewon.uploadservice.model.entity.OperationPlanRaw;
 import com.sewon.uploadservice.model.entity.OutboundTarget;
 import java.time.LocalDate;
 import java.util.List;
@@ -30,6 +31,8 @@ public interface CarOrderMapper {
     void bulkInsertOutboundMesStock(@Param("mesStocks") List<MesOutboundStock> mesStocks);
 
     void bulkInsertOutboundTarget(@Param("outbounds") List<OutboundTarget> outbounds);
+
+    void bulkInsertOperationPlanRaw(@Param("operationPlanRaws") List<OperationPlanRaw> operationPlanRaws);
 
     void bulkUpdateMesBox(@Param("mesBoxes") List<MesBoxData> mesBoxes);
 

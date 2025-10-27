@@ -13,6 +13,7 @@ import com.sewon.uploadservice.model.dto.erp.ErpStockData;
 import com.sewon.uploadservice.model.dto.mes.MesBoxData;
 import com.sewon.uploadservice.model.dto.csv.Ttime;
 import com.sewon.uploadservice.model.entity.MesInboundStockBox;
+import com.sewon.uploadservice.model.entity.OperationPlanRaw;
 import com.sewon.uploadservice.model.entity.OutboundTarget;
 import com.sewon.uploadservice.repository.car.CarOrderMapper;
 import com.sewon.uploadservice.model.dto.erp.TargetLocationDto;
@@ -121,6 +122,27 @@ public class UploadService {
         List<UpdateLineAndCustomerStock> updateLineAndCustomerStocks = csvFileParser.lineAndCustomerStockFileParsing(
             file);
         carOrderMapper.bulkUpdateLineAndYraStock(updateLineAndCustomerStocks);
+    }
+
+    @Transactional(transactionManager = "postgresqlTransactionManager")
+    public void operationPlanUpload(MultipartFile file, LocalDate date) {
+        List<OperationPlanRaw> operationPlans = csvFileParser.parsingOperationPlanFile(file, date)
+            .stream().map(OperationPlanRaw::from).toList();
+
+        List<List<OperationPlanRaw>> chunks = new ArrayList<>();
+        int chunkSize = 500;
+        for (int i = 0; i < operationPlans.size(); i += chunkSize) {
+            int endIdx = Math.min(i + chunkSize, operationPlans.size());
+            chunks.add(operationPlans.subList(i, endIdx));
+        }
+
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        for (List<OperationPlanRaw> chunk : chunks) {
+            futures.add(CompletableFuture.runAsync(() ->
+                carOrderMapper.bulkInsertOperationPlanRaw(chunk)));
+        }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }
 
 

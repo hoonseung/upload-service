@@ -117,6 +117,29 @@
     </if>
   </insert>
 
+  <insert id="bulkInsertOperationPlanRaw" parameterType="java.util.List">
+    <if test="operationPlanRaws != null and operationPlanRaws.size > 0">
+      INSERT INTO order_ops_plan_raw (
+      st_date, car_props, region, nation, door_type,
+      engine_capa, transmission, mc,
+      st_month1, st_month2,
+      st_month3, st_month4, st_month5, etc, customer, responder, upload_date,
+      created_at, modified_at
+      ) VALUES
+      <foreach collection="operationPlanRaws" item="item" separator=",">
+        (
+        #{item.stDate}, #{item.carProps}, #{item.region}, #{item.nation},
+        #{item.doorType},
+        #{item.engineCapa}, #{item.transmission}, #{item.mc},
+        #{item.stMonth1}, #{item.stMonth2},
+        #{item.stMonth3}, #{item.stMonth4}, #{item.stMonth5}, #{item.etc}, #{item.customer},
+        #{item.responder}, #{item.uploadDate},
+        #{item.createdDate}, #{item.modifyDate}
+        )
+      </foreach>
+    </if>
+  </insert>
+
 
   <update   id="bulkUpdateMesBox"  parameterType="java.util.List">
     WITH temp_product_list AS (
