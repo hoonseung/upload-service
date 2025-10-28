@@ -1,6 +1,7 @@
 package com.sewon.uploadservice.repository.car;
 
 import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
+import com.sewon.uploadservice.model.dto.erp.MonthProductAgg;
 import com.sewon.uploadservice.model.entity.CarOrder;
 import com.sewon.uploadservice.model.entity.MesBox;
 import com.sewon.uploadservice.model.entity.MesInboundStockBox;
@@ -8,6 +9,7 @@ import com.sewon.uploadservice.model.entity.MesInboundStock;
 import com.sewon.uploadservice.model.dto.mes.MesBoxData;
 import com.sewon.uploadservice.model.entity.MesOutboundStock;
 import com.sewon.uploadservice.model.entity.OperationPlanRaw;
+import com.sewon.uploadservice.model.entity.OperationPlanRawAggregation;
 import com.sewon.uploadservice.model.entity.OutboundTarget;
 import java.time.LocalDate;
 import java.util.List;
@@ -34,6 +36,8 @@ public interface CarOrderMapper {
 
     void bulkInsertOperationPlanRaw(@Param("operationPlanRaws") List<OperationPlanRaw> operationPlanRaws);
 
+    void bulkInsertOperationPlanAgg(@Param("operationPlanAgg") List<OperationPlanRawAggregation> operationPlanAgg);
+
     void bulkUpdateMesBox(@Param("mesBoxes") List<MesBoxData> mesBoxes);
 
     void bulkUpdateMesInboundStock(@Param("mesStocks") List<MesInboundStock> mesStocks);
@@ -52,7 +56,15 @@ public interface CarOrderMapper {
 
     List<MesInboundStock> findAllMesStock();
 
+    List<String> findAllCarPropsByResponderAndStDate(@Param("responder") String responder, @Param("stDate") LocalDate stDate);
+
+    List<MonthProductAgg> aggregationMonthProduction(@Param("stDate") LocalDate stDate, @Param("uniqueProps") List<String> uniqueProps);
+
     void deleteMesOutboundStock(@Param("date")LocalDate date);
 
     void deleteOutboundTarget(@Param("date")LocalDate date);
+
+    void deleteOpsPlanRawByStDate(@Param("date") LocalDate date);
+
+    void deleteOpsPlanRawAggByStDate(@Param("date") LocalDate date);
 }
