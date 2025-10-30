@@ -8,15 +8,19 @@
   JOIN (
   SELECT [품목번호-개정], MAX(CDATE) AS MAX_DATE
   FROM TB_QAD_품목개정찾아보기
-  WHERE 품목유형
+  WHERE 
+  <if test="carProps != null and carProps.size() > 0">
+  품목유형
   IN
   <foreach collection="carProps" item="carProp" open="(" separator="," close=")">
     #{carProp}
   </foreach>
   AND 제품군 != 3500
+  </if>
   GROUP BY [품목번호-개정]
   ) B
   ON B.[품목번호-개정] = A.[품목번호-개정] AND A.CDATE = B.MAX_DATE
+  WHERE A.[그룹 설명] != 'SAMPLE'
   GROUP BY A.품목유형, A.[그룹 설명];
 </select >
 </mapper>
