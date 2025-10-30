@@ -6,7 +6,7 @@ import static com.sewon.uploadservice.service.CSVFileValidator.csvInValidByPart;
 import static com.sewon.uploadservice.service.CSVFileValidator.fileEmptyCheck;
 import static com.sewon.uploadservice.service.CSVFileValidator.filesEmptyCheck;
 
-import com.sewon.uploadservice.service.CSVFileValidator;
+import com.sewon.uploadservice.service.OrderOperationService;
 import com.sewon.uploadservice.service.UploadService;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UploadController {
 
     private final UploadService uploadService;
+    private final OrderOperationService orderOperationService;
 
     @GetMapping()
     public String uploadHome() {
@@ -77,7 +78,8 @@ public class UploadController {
         if (fileEmptyCheck(file) || csvInValidByPart(file, "운영계획")) {
             return ResponseEntity.badRequest().body("fail");
         }
-        uploadService.operationPlanUpload(file, date);
+        LocalDate stDate = uploadService.operationPlanUpload(file, date);
+        orderOperationService.orderPlanRawOperation(stDate);
         return ResponseEntity.ok().body("success");
     }
 }

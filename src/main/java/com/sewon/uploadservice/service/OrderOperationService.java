@@ -25,6 +25,10 @@ public class OrderOperationService {
     public void orderPlanRawOperation(LocalDate stDate) {
         List<String> uniquCarPropsList = carOrderMapper.findAllCarPropsByResponderAndStDate("세원",
             stDate);
+        if (uniquCarPropsList.isEmpty()){
+            return;
+        }
+
         List<CarGroupProps> groupListByPartType = erpItemMapper.findGroupListByPartType(
             uniquCarPropsList);
 
