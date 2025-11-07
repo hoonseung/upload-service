@@ -1,6 +1,5 @@
 package com.sewon.uploadservice.model.entity;
 
-import com.sewon.uploadservice.model.dto.csv.OperationPlan;
 import com.sewon.uploadservice.model.dto.erp.CarGroupProps;
 import com.sewon.uploadservice.model.dto.erp.MonthProductAgg;
 import java.time.LocalDate;
@@ -32,22 +31,44 @@ public class OperationPlanRawAggregation {
 
     private Integer stMonth5Agg;
 
+    private String etc;
+
     private LocalDateTime createdDate;
 
     private LocalDateTime modifyDate;
 
 
-    public static OperationPlanRawAggregation of(LocalDate stDate, CarGroupProps props, MonthProductAgg products) {
+    public static OperationPlanRawAggregation of(LocalDate stDate, String carProps, String groupProps, MonthProductAgg products, String etc) {
+        if (products == null) return null;
         return new OperationPlanRawAggregation(
             null,
             stDate,
-            props.carProps(),
-            props.groupProps(),
+            carProps,
+            groupProps,
             products.month1Agg(),
             products.month2Agg(),
             products.month3Agg(),
             products.month4Agg(),
             products.month5Agg(),
+            etc,
+            LocalDateTime.now(),
+            LocalDateTime.now()
+        );
+    }
+
+    public static OperationPlanRawAggregation of(LocalDate stDate, String carProps, String groupProps, MonthProductAgg products) {
+        if (products == null) return null;
+        return new OperationPlanRawAggregation(
+            null,
+            stDate,
+            carProps,
+            groupProps,
+            products.month1Agg(),
+            products.month2Agg(),
+            products.month3Agg(),
+            products.month4Agg(),
+            products.month5Agg(),
+            products.etc(),
             LocalDateTime.now(),
             LocalDateTime.now()
         );

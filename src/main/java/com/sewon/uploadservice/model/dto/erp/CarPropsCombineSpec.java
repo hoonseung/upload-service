@@ -1,8 +1,9 @@
 package com.sewon.uploadservice.model.dto.erp;
 
-public record CarGroupProps(
+
+public record CarPropsCombineSpec(
     String carProps,
-    String shouldSplitGroupProps
+    String etc
 ) {
 
 

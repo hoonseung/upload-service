@@ -1,6 +1,8 @@
 package com.sewon.uploadservice.repository.car;
 
 import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
+import com.sewon.uploadservice.model.dto.erp.CarPropsCombineSpec;
+import com.sewon.uploadservice.model.dto.erp.CarPropsGroupSpecCombineSpec;
 import com.sewon.uploadservice.model.dto.erp.MonthProductAgg;
 import com.sewon.uploadservice.model.entity.CarOrder;
 import com.sewon.uploadservice.model.entity.MesBox;
@@ -56,9 +58,11 @@ public interface CarOrderMapper {
 
     List<MesInboundStock> findAllMesStock();
 
-    List<String> findAllCarPropsByResponderAndStDate(@Param("responder") String responder, @Param("stDate") LocalDate stDate);
+    List<CarPropsCombineSpec> findAllCarPropsByResponderAndStDate(@Param("responder") String responder, @Param("stDate") LocalDate stDate);
 
-    List<MonthProductAgg> aggregationMonthProduction(@Param("stDate") LocalDate stDate, @Param("uniqueProps") List<String> uniqueProps);
+    List<MonthProductAgg> aggregationMonthProduction(@Param("stDate") LocalDate stDate, @Param("specs") List<CarPropsGroupSpecCombineSpec> specs);
+
+    List<MonthProductAgg> aggregationMonthProductionNormal(@Param("stDate") LocalDate stDate, @Param("uniqueProps") List<String> uniqueProps);
 
     void deleteMesOutboundStock(@Param("date")LocalDate date);
 

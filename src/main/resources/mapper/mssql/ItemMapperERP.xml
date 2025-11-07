@@ -1,26 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.sewon.uploadservice.repository.erp.ERPItemMapper">
-  <!--품목유형이랑 일치하는 제일 최신 그룹 설명 데이터 가져오기-->
-<select  id="findGroupListByPartType" resultType="CarGroupProps">
-  SELECT A.품목유형 as carProps, A.[그룹 설명] as groupProps
-  FROM TB_QAD_품목개정찾아보기 A
-  JOIN (
-  SELECT [품목번호-개정], MAX(CDATE) AS MAX_DATE
-  FROM TB_QAD_품목개정찾아보기
-  WHERE 
-  <if test="carProps != null and carProps.size() > 0">
-  품목유형
-  IN
-  <foreach collection="carProps" item="carProp" open="(" separator="," close=")">
-    #{carProp}
-  </foreach>
-  AND 제품군 != 3500
-  </if>
-  GROUP BY [품목번호-개정]
-  ) B
-  ON B.[품목번호-개정] = A.[품목번호-개정] AND A.CDATE = B.MAX_DATE
-  WHERE A.[그룹 설명] != 'SAMPLE'
-  GROUP BY A.품목유형, A.[그룹 설명];
-</select >
+  <select  id="findGroupListByPartType" resultType="CarGroupProps">
+    SELECT A.차종 AS carProps, A.품명 AS groupProps
+    FROM TB_PDM_ORDER_ForWeeks A
+    <where>
+      등록일 = (
+      SELECT MAX(등록일)
+      FROM TB_PDM_ORDER_ForWeeks)
+      AND
+      <if test="carProps != null and carProps.size() > 0">
+        차종
+        IN
+        <foreach collection="carProps" item="carProp" open="(" separator="," close=")">
+          #{carProp}
+        </foreach>
+      </if>
+    </where>
+    GROUP BY A.차종, A.품명;
+  </select >
 </mapper>

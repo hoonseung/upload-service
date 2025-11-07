@@ -44,6 +44,7 @@ public class UploadService {
 
     private final StockSearchService stockSearchService;
     private final CarOrderMapper carOrderMapper;
+    private final OrderOperationService orderOperationService;
 
     private final Set<String> refUniqueItemCodeSet = new HashSet<>();
 
@@ -125,12 +126,13 @@ public class UploadService {
     }
 
     @Transactional(transactionManager = "postgresqlTransactionManager")
-    public LocalDate operationPlanUpload(MultipartFile file, LocalDate date) {
-        carOrderMapper.deleteOpsPlanRawByStDate(date);
-        carOrderMapper.deleteOpsPlanRawAggByStDate(date);
-
+    public void operationPlanUpload(MultipartFile file, LocalDate date) {
         List<OperationPlanRaw> operationPlans = csvFileParser.parsingOperationPlanFile(file, date)
             .stream().map(OperationPlanRaw::from).toList();
+        LocalDate stDate = operationPlans.get(0).getStDate();
+
+        carOrderMapper.deleteOpsPlanRawByStDate(stDate);
+        carOrderMapper.deleteOpsPlanRawAggByStDate(stDate);
 
         List<List<OperationPlanRaw>> chunks = new ArrayList<>();
         int chunkSize = 500;
@@ -139,14 +141,10 @@ public class UploadService {
             chunks.add(operationPlans.subList(i, endIdx));
         }
 
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (List<OperationPlanRaw> chunk : chunks) {
-            futures.add(CompletableFuture.runAsync(() ->
-                carOrderMapper.bulkInsertOperationPlanRaw(chunk)));
+            carOrderMapper.bulkInsertOperationPlanRaw(chunk);
         }
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-
-        return operationPlans.get(0).getStDate();
+        orderOperationService.orderPlanRawOperation(stDate);
     }
 
 

@@ -78,8 +78,7 @@ public class UploadController {
         if (fileEmptyCheck(file) || csvInValidByPart(file, "운영계획")) {
             return ResponseEntity.badRequest().body("fail");
         }
-        LocalDate stDate = uploadService.operationPlanUpload(file, date);
-        orderOperationService.orderPlanRawOperation(stDate);
+        uploadService.operationPlanUpload(file, date);
         return ResponseEntity.ok().body("success");
     }
 }

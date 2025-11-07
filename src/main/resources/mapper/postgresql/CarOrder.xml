@@ -145,14 +145,14 @@
       INSERT INTO order_ops_plan_raw_agg (
       st_date, car_props, group_props,
       st_month1_agg, st_month2_agg, st_month3_agg, st_month4_agg, st_month5_agg,
-      created_at, modified_at
+      created_at, modified_at, etc
       ) VALUES
       <foreach collection="operationPlanAgg" item="item" separator=",">
         (
         #{item.stDate}, #{item.carProps}, #{item.groupProps},
         #{item.stMonth1Agg}, #{item.stMonth2Agg},
         #{item.stMonth3Agg}, #{item.stMonth4Agg}, #{item.stMonth5Agg},
-        #{item.createdDate}, #{item.modifyDate}
+        #{item.createdDate}, #{item.modifyDate}, #{item.etc}
         )
       </foreach>
     </if>
@@ -332,27 +332,56 @@
     FROM order_mes_stock
   </select>
 
-  <select id="findAllCarPropsByResponderAndStDate" resultType="java.lang.String">
-    SELECT car_props FROM order_ops_plan_raw
-    WHERE responder = #{responder} AND st_date = #{stDate}
-    GROUP BY car_props;
+  <select id="findAllCarPropsByResponderAndStDate" resultType="CarPropsCombineSpec">
+    SELECT car_props, etc
+    FROM order_ops_plan_raw
+    WHERE responder = #{responder}
+    AND st_date = #{stDate}
+    GROUP BY car_props, etc
   </select>
 
   <select id="aggregationMonthProduction" resultType="MonthProductAgg">
-    SELECT car_props,
-    SUM(st_month1) as month1Agg,
-    SUM(st_month2) as month2Agg,
-    SUM(st_month3) as month3Agg,
-    SUM(st_month4) as month4Agg,
-    SUM(st_month5) as month5Agg
+    SELECT
+    car_props as carProps,
+    etc as etc,
+    SUM(st_month1) as M_Prod,
+    SUM(st_month2) as M1_Prod,
+    SUM(st_month3) as M2_Prod,
+    SUM(st_month4) as M3_Prod,
+    SUM(st_month5) as M4_Prod
     FROM order_ops_plan_raw
     WHERE responder = '세원'
-    AND car_props IN
-    <foreach collection="uniqueProps" item="prop" open="(" separator="," close=")">
-      #{prop}
-    </foreach>
     AND st_date = #{stDate}
-    GROUP BY car_props;
+
+    <if test="specs != null and specs.size > 0">
+      AND (car_props, etc) IN
+      <foreach collection="specs" item="pair" open="(" separator="," close=")">
+        (#{pair.carProps}, #{pair.etc})
+      </foreach>
+    </if>
+
+    GROUP BY car_props, etc
+  </select>
+
+  <select id="aggregationMonthProductionNormal" resultType="MonthProductAgg">
+    SELECT
+    car_props as carProps,
+    '' as etc,
+    SUM(st_month1) as M_Prod,
+    SUM(st_month2) as M1_Prod,
+    SUM(st_month3) as M2_Prod,
+    SUM(st_month4) as M3_Prod,
+    SUM(st_month5) as M4_Prod
+    FROM order_ops_plan_raw
+    WHERE responder = '세원'
+    AND st_date = #{stDate}
+    <if test="uniqueProps != null and uniqueProps.size > 0">
+      AND car_props IN
+      <foreach collection="uniqueProps" item="item" open="(" separator="," close=")">
+        #{item}
+      </foreach>
+    </if>
+    GROUP BY car_props
   </select>
 
 
