@@ -1,6 +1,6 @@
 package com.sewon.uploadservice.repository.erp;
 
-import com.sewon.uploadservice.model.dto.erp.CarGroupProps;
+import com.sewon.uploadservice.model.dto.car.CarGroupProps;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

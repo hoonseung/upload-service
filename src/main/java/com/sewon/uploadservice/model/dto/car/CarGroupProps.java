@@ -1,4 +1,4 @@
-package com.sewon.uploadservice.model.dto.erp;
+package com.sewon.uploadservice.model.dto.car;
 
 public record CarGroupProps(
     String carProps,

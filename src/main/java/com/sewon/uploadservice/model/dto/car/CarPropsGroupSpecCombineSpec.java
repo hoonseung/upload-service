@@ -1,4 +1,4 @@
-package com.sewon.uploadservice.model.dto.erp;
+package com.sewon.uploadservice.model.dto.car;
 
 import com.sewon.uploadservice.model.collection.CarSpec;
 import java.util.Arrays;
