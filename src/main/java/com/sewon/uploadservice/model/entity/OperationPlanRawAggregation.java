@@ -1,6 +1,6 @@
 package com.sewon.uploadservice.model.entity;
 
-import com.sewon.uploadservice.model.dto.car.MonthProductAgg;
+import com.sewon.uploadservice.model.dto.car.sgn.MonthProductAgg;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;

@@ -1,9 +1,9 @@
 package com.sewon.uploadservice.repository.car;
 
 import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
-import com.sewon.uploadservice.model.dto.car.CarPropsCombineSpec;
-import com.sewon.uploadservice.model.dto.car.CarPropsGroupSpecCombineSpec;
-import com.sewon.uploadservice.model.dto.car.MonthProductAgg;
+import com.sewon.uploadservice.model.dto.car.sgn.CarPropsCombineSpec;
+import com.sewon.uploadservice.model.dto.car.sgn.CarPropsGroupSpecCombineSpec;
+import com.sewon.uploadservice.model.dto.car.sgn.MonthProductAgg;
 import com.sewon.uploadservice.model.entity.CarOrder;
 import com.sewon.uploadservice.model.entity.MesBox;
 import com.sewon.uploadservice.model.entity.MesInboundStockBox;

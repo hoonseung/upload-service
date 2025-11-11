@@ -1,6 +1,6 @@
 package com.sewon.uploadservice.model.collection;
 
-import com.sewon.uploadservice.model.dto.car.CarGroupProps;
+import com.sewon.uploadservice.model.dto.car.sgn.CarGroupProps;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

@@ -1,10 +1,10 @@
 package com.sewon.uploadservice.service;
 
 import com.sewon.uploadservice.model.collection.CarSpec;
-import com.sewon.uploadservice.model.dto.car.CarGroupProps;
-import com.sewon.uploadservice.model.dto.car.CarPropsCombineSpec;
-import com.sewon.uploadservice.model.dto.car.CarPropsGroupSpecCombineSpec;
-import com.sewon.uploadservice.model.dto.car.MonthProductAgg;
+import com.sewon.uploadservice.model.dto.car.sgn.CarGroupProps;
+import com.sewon.uploadservice.model.dto.car.sgn.CarPropsCombineSpec;
+import com.sewon.uploadservice.model.dto.car.sgn.CarPropsGroupSpecCombineSpec;
+import com.sewon.uploadservice.model.dto.car.sgn.MonthProductAgg;
 import com.sewon.uploadservice.model.entity.OperationPlanRawAggregation;
 import com.sewon.uploadservice.repository.car.CarOrderMapper;
 import com.sewon.uploadservice.repository.erp.ERPItemMapper;
