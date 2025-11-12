@@ -5,17 +5,25 @@ import com.sewon.uploadservice.model.dto.car.sgn.CarGroupProps;
 import com.sewon.uploadservice.model.dto.car.sgn.CarPropsCombineSpec;
 import com.sewon.uploadservice.model.dto.car.sgn.CarPropsGroupSpecCombineSpec;
 import com.sewon.uploadservice.model.dto.car.sgn.MonthProductAgg;
+import com.sewon.uploadservice.model.dto.car.spn.CarItemMonthAgg;
+import com.sewon.uploadservice.model.dto.car.spn.CarPartNoTotalAgg;
+import com.sewon.uploadservice.model.dto.car.spn.CarProductionRate;
+import com.sewon.uploadservice.model.entity.OperationLastMonthlyPlanAggregation;
+import com.sewon.uploadservice.model.entity.OperationPlanProductionRate;
 import com.sewon.uploadservice.model.entity.OperationPlanRawAggregation;
 import com.sewon.uploadservice.repository.car.CarOrderMapper;
 import com.sewon.uploadservice.repository.erp.ERPItemMapper;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +59,129 @@ public class OrderOperationService {
         if (!unNormalSpecs.isEmpty()) {
             processUnNormalSpecs(stDate, unNormalSpecs);
         }
+
+        carOrderMapper.bulkInsertOperationLastMonthlyPlanAgg(
+        erpItemMapper.findPartNoTotalLast4Weeks(stDate)
+            .stream()
+            .map(agg -> OperationLastMonthlyPlanAggregation.of(stDate, agg))
+            .toList()
+        );
     }
+    /**
+     * 품번 처리 섹션
+     * - 최근 4주 기준 품번 합계에서 상위 20% 품번 추출
+     * - 그룹 내 비중을 계산하여 품번별 생산 비율 산정
+     * - 산출된 비율로 OperationPlanProductionRate를 생성·저장
+     */
+    @Transactional
+    public void partitioningPartNoByOrderPlanRawOperation(LocalDate stDate){
+        // 차종 품명 별 달 간 생산 해야 하는 양
+        List<CarItemMonthAgg> monthlyAggByCarItem = carOrderMapper.findMonthlyAggByCarItem();
+
+        // 한달 전 4주 서열에서 품번 합계 추출
+        List<CarPartNoTotalAgg> partNoTotalLast4Weeks = erpItemMapper.findPartNoTotalLast4Weeks(stDate);
+
+        if (monthlyAggByCarItem == null || monthlyAggByCarItem.isEmpty()) {
+            return;
+        }
+        if (partNoTotalLast4Weeks == null || partNoTotalLast4Weeks.isEmpty()) {
+            return;
+        }
+
+        // 차종을 그룹핑하여 상위 20퍼 아이템만 가져오기
+        Map<String, List<CarPartNoTotalAgg>> topItems = getCarPartNoTotalAggsTop20p(partNoTotalLast4Weeks);
+
+        // 상위 20퍼 아이템 중에서도 비율 나누기
+        List<CarProductionRate> topRateItems = getCarPartNoTotalAggsRate(topItems);
+
+        // 품명, 도어, 지역을 매칭하여 쌍 만들기
+        List<Entry<CarItemMonthAgg, CarProductionRate>> pairList = monthlyAggByCarItem.stream()
+            .flatMap(agg -> topRateItems.stream()
+                .filter(rate ->
+                    Objects.equals(agg.carItem(), rate.carItem()) &&
+                        Objects.equals(rate.doorType(), agg.doorType()) &&
+                        Objects.equals(rate.region(), agg.region())
+                ).map(rate -> Map.entry(agg, rate))
+            ).toList();
+
+
+        // 최종 결과
+
+         List<OperationPlanProductionRate> productionRates = pairList.stream()
+            .map(pair -> {
+                    CarItemMonthAgg agg = pair.getKey();
+                    CarProductionRate rate = pair.getValue();
+
+                    double percent = rate.rate() / 100.0;
+
+                    int rateByMonth1 = (int) Math.round(agg.month1Agg() * percent);
+                    int rateByMonth2 = (int) Math.round(agg.month2Agg() * percent);
+                    int rateByMonth3 = (int) Math.round(agg.month3Agg() * percent);
+                    int rateByMonth4 = (int) Math.round(agg.month4Agg() * percent);
+                    int rateByMonth5 = (int) Math.round(agg.month5Agg() * percent);
+
+                    return OperationPlanProductionRate.of(stDate, agg.carItem(), agg.doorType(), agg.region(),
+                        rate.partNo(), rate.rate(), rate.responder(),
+                        rateByMonth1,
+                        rateByMonth2,
+                        rateByMonth3,
+                        rateByMonth4,
+                        rateByMonth5);
+                }
+            ).toList();
+
+        carOrderMapper.bulkInsertOperationPlanProductionRate(productionRates);
+    }
+
+    private List<CarProductionRate> getCarPartNoTotalAggsRate(Map<String,List<CarPartNoTotalAgg>> topItems) {
+        return topItems
+            .entrySet()
+            .stream()
+            .flatMap(entry -> {
+                List<CarPartNoTotalAgg> groupList = entry.getValue();
+                long groupSum = groupList.stream()
+                    .mapToLong(CarPartNoTotalAgg::dPlusTotal)
+                    .sum();
+
+                if (groupSum <= 0) {
+                    return Stream.empty();
+                }
+
+                return groupList.stream()
+                    .map(agg -> {
+                        int rate = (int)
+                            Math.round(
+                                (agg.dPlusTotal() / (double) groupSum) * 100);
+                        return CarProductionRate.of(agg.partNo(), agg.carItem(),
+                            agg.doorType(), agg.region(), agg.responder(), agg.dPlusTotal(), rate);
+                    });
+            }).toList();
+    }
+
+
+    private Map<String, List<CarPartNoTotalAgg>> getCarPartNoTotalAggsTop20p(
+        List<CarPartNoTotalAgg> partNoTotalLast4Weeks) {
+        return partNoTotalLast4Weeks.stream()
+            .collect(Collectors.groupingBy(CarPartNoTotalAgg::carItem,
+                Collectors.collectingAndThen(Collectors.toList(),
+                    groupList -> {
+                        long groupSum = groupList.stream()
+                            .mapToLong(CarPartNoTotalAgg::dPlusTotal)
+                            .sum();
+
+                        if (groupSum == 0) {
+                            // 합계가 0인 그룹은 빈 리스트를 반환합니다.
+                            return Collections.emptyList();
+                        }
+
+                        int cutoffValue = (int) Math.round(groupSum * 0.2);
+                        return groupList.stream()
+                            .filter(agg -> agg.dPlusTotal() >= cutoffValue)
+                            .toList();
+                    }
+                    )));
+    }
+
 
     /**
      * '정상' 스펙(etc가 비어있음) 데이터를 처리하고 저장합니다.

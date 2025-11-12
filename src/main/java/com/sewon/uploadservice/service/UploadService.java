@@ -133,6 +133,7 @@ public class UploadService {
 
         carOrderMapper.deleteOpsPlanRawByStDate(stDate);
         carOrderMapper.deleteOpsPlanRawAggByStDate(stDate);
+        carOrderMapper.deleteOpsMonthlyPlanAggByStDate(stDate);
 
         List<List<OperationPlanRaw>> chunks = new ArrayList<>();
         int chunkSize = 500;

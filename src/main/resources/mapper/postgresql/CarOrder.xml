@@ -158,6 +158,44 @@
     </if>
   </insert>
 
+  <insert id="bulkInsertOperationLastMonthlyPlanAgg" parameterType="java.util.List">
+    <if test="operationPlanMAgg != null and operationPlanMAgg.size > 0">
+      INSERT INTO order_ops_plan_last_mon_agg (
+      st_date, to_date, from_date, car_item, part_no, door_type, region, d_plus_total, responder,
+      created_at, modified_at
+      ) VALUES
+      <foreach collection="operationPlanMAgg" item="item" separator=",">
+        (
+        #{item.stDate}, #{item.toDate}, #{item.fromDate}, #{item.carItem}, #{item.partNo},
+        #{item.doorType},  #{item.region}, #{item.dPlusTotal}, #{item.responder},
+        #{item.createdDate}, #{item.modifyDate}
+        )
+      </foreach>
+    </if>
+  </insert>
+
+  <insert id="bulkInsertOperationPlanProductionRate" parameterType="java.util.List">
+    <if test="operationPlanRate != null and operationPlanRate.size > 0">
+      INSERT INTO order_ops_plan_production_rate (
+      st_date, car_item, door_type, region, partno, rate, responder,
+      month1_rate, month2_rate, month3_rate, month4_rate, month5_rate,
+      created_at, modified_at
+      ) VALUES
+      <foreach collection="operationPlanRate" item="item" separator=",">
+        (
+        #{item.stDate}, #{item.carItem}, #{item.doorType},
+        #{item.region}, #{item.partNo}, #{item.rate}, #{item.responder},
+        #{item.rateByMonth1},
+        #{item.rateByMonth2},
+        #{item.rateByMonth3},
+        #{item.rateByMonth4},
+        #{item.rateByMonth5},
+        #{item.createdDate}, #{item.modifyDate}
+        )
+      </foreach>
+    </if>
+  </insert>
+
   <update   id="bulkUpdateMesBox"  parameterType="java.util.List">
     WITH temp_product_list AS (
     SELECT *
@@ -383,6 +421,30 @@
     GROUP BY car_props
   </select>
 
+  <select id="findMonthlyAggByCarItem" resultType="CarItemMonthAgg">
+    WITH tmp_raw AS (
+      SELECT car_props, door_type, region,
+             sum(st_month1) AS m1_total,
+             sum(st_month2) AS m2_total,
+             sum(st_month3) AS m3_total,
+             sum(st_month4) AS m4_total,
+             sum(st_month5) AS m5_total
+      FROM order_ops_plan_raw
+      GROUP BY car_props, door_type, region
+    )
+    SELECT CONCAT(a.car_props, ' ', a.group_props) AS carItem,
+           b.door_type,
+           b.region,
+           b.m1_total,
+           b.m2_total,
+           b.m3_total,
+           b.m4_total,
+           b.m5_total
+    FROM order_ops_plan_raw_agg a
+           LEFT JOIN tmp_raw b ON a.car_props = b.car_props
+    ORDER BY carItem;
+  </select>
+
 
   <delete id="deleteMesOutboundStock" parameterType="java.time.LocalDate">
     DELETE
@@ -405,6 +467,18 @@
   <delete id="deleteOpsPlanRawAggByStDate" parameterType="java.time.LocalDate">
     DELETE
     FROM order_ops_plan_raw_agg
+    WHERE st_date = #{date}
+  </delete>
+
+  <delete id="deleteOpsMonthlyPlanAggByStDate" parameterType="java.time.LocalDate">
+    DELETE
+    FROM order_ops_plan_last_mon_agg
+    WHERE st_date = #{date}
+  </delete>
+
+  <delete id="deleteOpsPlanProductionRateByStDate" parameterType="java.time.LocalDate">
+    DELETE
+    FROM order_ops_plan_production_rate
     WHERE st_date = #{date}
   </delete>
 </mapper>

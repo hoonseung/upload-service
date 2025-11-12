@@ -1,15 +1,18 @@
 package com.sewon.uploadservice.repository.car;
 
+import com.sewon.uploadservice.model.dto.car.spn.CarItemMonthAgg;
 import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
 import com.sewon.uploadservice.model.dto.car.sgn.CarPropsCombineSpec;
 import com.sewon.uploadservice.model.dto.car.sgn.CarPropsGroupSpecCombineSpec;
 import com.sewon.uploadservice.model.dto.car.sgn.MonthProductAgg;
 import com.sewon.uploadservice.model.entity.CarOrder;
+import com.sewon.uploadservice.model.entity.OperationLastMonthlyPlanAggregation;
 import com.sewon.uploadservice.model.entity.MesBox;
 import com.sewon.uploadservice.model.entity.MesInboundStockBox;
 import com.sewon.uploadservice.model.entity.MesInboundStock;
 import com.sewon.uploadservice.model.dto.mes.MesBoxData;
 import com.sewon.uploadservice.model.entity.MesOutboundStock;
+import com.sewon.uploadservice.model.entity.OperationPlanProductionRate;
 import com.sewon.uploadservice.model.entity.OperationPlanRaw;
 import com.sewon.uploadservice.model.entity.OperationPlanRawAggregation;
 import com.sewon.uploadservice.model.entity.OutboundTarget;
@@ -40,6 +43,11 @@ public interface CarOrderMapper {
 
     void bulkInsertOperationPlanAgg(@Param("operationPlanAgg") List<OperationPlanRawAggregation> operationPlanAgg);
 
+    void bulkInsertOperationLastMonthlyPlanAgg(@Param("operationPlanMAgg") List<OperationLastMonthlyPlanAggregation> operationPlanMAgg);
+
+    // .service.partitioningPartNoByOrderPlanRawOperation 용도
+    void bulkInsertOperationPlanProductionRate(@Param("operationPlanRate") List<OperationPlanProductionRate> operationPlanRate);
+
     void bulkUpdateMesBox(@Param("mesBoxes") List<MesBoxData> mesBoxes);
 
     void bulkUpdateMesInboundStock(@Param("mesStocks") List<MesInboundStock> mesStocks);
@@ -64,6 +72,8 @@ public interface CarOrderMapper {
 
     List<MonthProductAgg> aggregationMonthProductionNormal(@Param("stDate") LocalDate stDate, @Param("uniqueProps") List<String> uniqueProps);
 
+    List<CarItemMonthAgg> findMonthlyAggByCarItem();
+
     void deleteMesOutboundStock(@Param("date")LocalDate date);
 
     void deleteOutboundTarget(@Param("date")LocalDate date);
@@ -71,4 +81,8 @@ public interface CarOrderMapper {
     void deleteOpsPlanRawByStDate(@Param("date") LocalDate date);
 
     void deleteOpsPlanRawAggByStDate(@Param("date") LocalDate date);
+
+    void deleteOpsMonthlyPlanAggByStDate(@Param("date") LocalDate date);
+
+    void deleteOpsPlanProductionRateByStDate(@Param("date") LocalDate date);
 }

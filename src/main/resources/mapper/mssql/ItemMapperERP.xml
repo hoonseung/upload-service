@@ -19,4 +19,29 @@
     </where>
     GROUP BY A.차종, A.품명;
   </select >
+
+  <select id="findPartNoTotalLast4Weeks" resultType="CarPartNoTotalAgg">
+    WITH orderSummary AS (
+      SELECT PartNo, 품명, 대응지, SUM(합계) AS dplusTotal
+      FROM TB_PDM_ORDER_ForWeeks a
+      WHERE a.등록일 between dateadd(DAY, 1, eomonth(#{stDate}, -2))
+        and eomonth(#{stDate}, -1)
+        and 품명 NOT LIKE N'%3공장%'
+        and (
+             a.대응지 LIKE N'%위해%'
+          OR a.대응지 LIKE N'%덕주%'
+          OR a.대응지 LIKE N'%비나%'
+          OR a.대응지 LIKE N'%베트남%'
+        )
+      GROUP BY PartNo, 품명, 대응지
+    )
+    SELECT a.품명 AS carItem, a.PartNo, b.OptionCode2 AS doorType, b.OptionCode1 AS region,
+           a.대응지 AS responder, a.dplusTotal AS dplusTotal
+    FROM orderSummary a
+           JOIN TB_QAD_품목option정의마스터찾아보기 b ON a.PartNo = b.PartNo
+    WHERE
+      b.OptionCode2 in ('D01', 'D02') AND
+      b.OptionCode1 IN ('R01', 'R02', 'R03', 'R04', 'R05', 'R06', 'R07', 'R09')
+    GROUP BY a.PartNo, a.품명, b.OptionCode2, b.OptionCode1, a.대응지, a.dplusTotal;
+  </select>
 </mapper>
