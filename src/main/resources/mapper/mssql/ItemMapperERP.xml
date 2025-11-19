@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sewon.uploadservice.repository.erp.ERPItemMapper">
+  <select  id="findGroupListByPartType" resultType="CarGroupProps">
+    WITH RANK AS (
+      SELECT A.차종 AS carProps, A.품명 AS groupProps,
+      RANK() OVER (PARTITION BY A.차종, A.품명 ORDER BY A.등록일 DESC) AS RN
+      FROM TB_PDM_ORDER_ForWeeks A
+    <where>
+      등록일 >= DATEADD(MONTH , -2, (SELECT MAX(등록일) FROM TB_PDM_ORDER_ForWeeks))
+      AND
+      <if test="carProps != null and carProps.size() > 0">
+        차종
+        IN
+        <foreach collection="carProps" item="carProp" open="(" separator="," close=")">
+          #{carProp}
+        </foreach>
+      </if>
+    </where>
+    GROUP BY A.차종, A.품명, A.등록일
+    ) SELECT carProps, groupProps FROM RANK WHERE RN = 1
+  </select >
+
+  <select id="findPartNoTotalLast4Weeks" resultType="CarPartNoTotalAgg">
+    WITH GroupData AS (SELECT MAX(등록일) as 최신등록일, PartNo, 품명, 대응지, SUM(합계) AS dplusTotal
+                       FROM TB_PDM_ORDER_ForWeeks a
+    <choose>
+      <when test="startDate != null and endDate != null">
+        <!-- from ~ to -->
+        WHERE a.등록일 BETWEEN #{startDate}
+        and #{endDate}
+      </when>
+      <when test="toDay != null">
+        <!--전 달 부터 오늘까지-->
+        WHERE a.등록일 BETWEEN DATEADD(month, -1, #{toDay})
+        and #{toDay}
+      </when>
+      <otherwise>
+        <!-- 전 월 1일 ~ 전월 말 -->
+        WHERE a.등록일 BETWEEN dateadd(day, 1, EOMONTH(#{stDate}, -2))
+        and eomonth(#{stDate}, -1)
+      </otherwise>
+    </choose>
+                         AND (
+                         a.대응지 LIKE N'%위해%'
+                           OR a.대응지 LIKE N'%덕주%'
+                           OR a.대응지 LIKE N'%비나%'
+                           OR a.대응지 LIKE N'%베트남%'
+                         )
+                       GROUP BY PartNo, 품명, 대응지),
+         orderSummary as
+           (SELECT DISTINCT
+              a.최신등록일,
+              IIF(a.품명 LIKE N'%3공장', RTRIM(REPLACE(a.품명, N' 3공장', N'')), a.품명) AS carItem,
+              a.PartNo,
+              b.OptionCode2                                            as doorType,
+              b.OptionCode1                                            as region,
+              a.대응지                                                    as responder,
+              a.dplusTotal
+            FROM GroupData a
+                   join TB_QAD_품목option정의마스터찾아보기 b on a.PartNo = b.PartNo),
+         RankedData AS (SELECT *, ROW_NUMBER() over (PARTITION BY PartNo ORDER BY 최신등록일 DESC) AS RN
+                        FROM orderSummary)
+    SELECT
+           carItem,
+           PartNo,
+           doorType,
+           region,
+           responder,
+           dplusTotal
+    FROM RankedData
+    WHERE RN = 1;
+  </select>
+</mapper>

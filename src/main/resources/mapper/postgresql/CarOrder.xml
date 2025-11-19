@@ -140,6 +140,61 @@
     </if>
   </insert>
 
+  <insert id="bulkInsertOperationPlanAgg" parameterType="java.util.List">
+    <if test="operationPlanAgg != null and operationPlanAgg.size > 0">
+      INSERT INTO order_ops_plan_raw_agg (
+      st_date, car_props, group_props,
+      st_month1_agg, st_month2_agg, st_month3_agg, st_month4_agg, st_month5_agg,
+      created_at, modified_at, etc
+      ) VALUES
+      <foreach collection="operationPlanAgg" item="item" separator=",">
+        (
+        #{item.stDate}, #{item.carProps}, #{item.groupProps},
+        #{item.stMonth1Agg}, #{item.stMonth2Agg},
+        #{item.stMonth3Agg}, #{item.stMonth4Agg}, #{item.stMonth5Agg},
+        #{item.createdDate}, #{item.modifyDate}, #{item.etc}
+        )
+      </foreach>
+    </if>
+  </insert>
+
+  <insert id="bulkInsertOperationLastMonthlyPlanAgg" parameterType="java.util.List">
+    <if test="operationPlanMAgg != null and operationPlanMAgg.size > 0">
+      INSERT INTO order_ops_plan_last_mon_agg (
+      st_date, to_date, from_date, car_item, part_no, door_type, region, d_plus_total, responder,
+      created_at, modified_at
+      ) VALUES
+      <foreach collection="operationPlanMAgg" item="item" separator=",">
+        (
+        #{item.stDate}, #{item.toDate}, #{item.fromDate}, #{item.carItem}, #{item.partNo},
+        #{item.doorType},  #{item.region}, #{item.dPlusTotal}, #{item.responder},
+        #{item.createdDate}, #{item.modifyDate}
+        )
+      </foreach>
+    </if>
+  </insert>
+
+  <insert id="bulkInsertOperationPlanProductionRate" parameterType="java.util.List">
+    <if test="operationPlanRate != null and operationPlanRate.size > 0">
+      INSERT INTO order_ops_plan_production_rate (
+      st_date, car_item, door_type, region, partno, rate, responder,
+      month1_rate, month2_rate, month3_rate, month4_rate, month5_rate,
+      created_at, modified_at
+      ) VALUES
+      <foreach collection="operationPlanRate" item="item" separator=",">
+        (
+        #{item.stDate}, #{item.carItem}, #{item.doorType},
+        #{item.region}, #{item.partNo}, #{item.rate}, #{item.responder},
+        #{item.rateByMonth1},
+        #{item.rateByMonth2},
+        #{item.rateByMonth3},
+        #{item.rateByMonth4},
+        #{item.rateByMonth5},
+        #{item.createdDate}, #{item.modifyDate}
+        )
+      </foreach>
+    </if>
+  </insert>
 
   <update   id="bulkUpdateMesBox"  parameterType="java.util.List">
     WITH temp_product_list AS (
@@ -179,9 +234,8 @@
       qty = CASE WHEN m.qty IS DISTINCT FROM t.temp_qty THEN t.temp_qty ELSE m.qty END,
       modified_at = now()
       FROM temp_product_list AS t
-      WHERE (m.factory = t.temp_factory
-      AND m.item_code = t.temp_item_code)
-      OR (m.item_code = t.temp_item_code)
+      WHERE m.factory = t.temp_factory
+      AND m.item_code = t.temp_item_code;
     </if>
   </update>
 
@@ -315,6 +369,87 @@
     FROM order_mes_stock
   </select>
 
+  <select id="findAllCarPropsByResponderAndStDate" resultType="CarPropsCombineSpec">
+    SELECT car_props, etc
+    FROM order_ops_plan_raw
+    WHERE responder = #{responder}
+    AND st_date = #{stDate}
+    GROUP BY car_props, etc
+  </select>
+
+  <select id="aggregationMonthProduction" resultType="MonthProductAgg">
+    SELECT
+    car_props as carProps,
+    etc as etc,
+    SUM(st_month1) as M_Prod,
+    SUM(st_month2) as M1_Prod,
+    SUM(st_month3) as M2_Prod,
+    SUM(st_month4) as M3_Prod,
+    SUM(st_month5) as M4_Prod
+    FROM order_ops_plan_raw
+    WHERE responder = '세원'
+    AND st_date = #{stDate}
+
+    <if test="specs != null and specs.size > 0">
+      AND (car_props, etc) IN
+      <foreach collection="specs" item="pair" open="(" separator="," close=")">
+        (#{pair.carProps}, #{pair.etc})
+      </foreach>
+    </if>
+
+    GROUP BY car_props, etc
+  </select>
+
+  <select id="aggregationMonthProductionNormal" resultType="MonthProductAgg">
+    SELECT
+    car_props as carProps,
+    '' as etc,
+    SUM(st_month1) as M_Prod,
+    SUM(st_month2) as M1_Prod,
+    SUM(st_month3) as M2_Prod,
+    SUM(st_month4) as M3_Prod,
+    SUM(st_month5) as M4_Prod
+    FROM order_ops_plan_raw
+    WHERE responder = '세원'
+    AND st_date = #{stDate}
+    <if test="uniqueProps != null and uniqueProps.size > 0">
+      AND car_props IN
+      <foreach collection="uniqueProps" item="item" open="(" separator="," close=")">
+        #{item}
+      </foreach>
+    </if>
+    GROUP BY car_props
+  </select>
+
+  <select id="findMonthlyAggByCarItem" resultType="CarItemMonthAgg">
+    WITH tmp_raw AS (
+      SELECT car_props, door_type, region,
+             sum(st_month1) AS m1_total,
+             sum(st_month2) AS m2_total,
+             sum(st_month3) AS m3_total,
+             sum(st_month4) AS m4_total,
+             sum(st_month5) AS m5_total
+      FROM order_ops_plan_raw
+      GROUP BY car_props, door_type, region
+    )
+    SELECT CONCAT(a.car_props, ' ', a.group_props) AS carItem,
+           b.door_type,
+           b.region,
+           b.m1_total,
+           b.m2_total,
+           b.m3_total,
+           b.m4_total,
+           b.m5_total
+    FROM order_ops_plan_raw_agg a
+           LEFT JOIN tmp_raw b ON a.car_props = b.car_props
+    ORDER BY carItem;
+  </select>
+
+  <select id="findRecentlyStDate" resultType="java.time.LocalDate">
+    SELECT DISTINCT st_date FROM order_ops_plan_last_mon_agg
+    ORDER BY st_date DESC LIMIT 1;
+  </select>
+
 
   <delete id="deleteMesOutboundStock" parameterType="java.time.LocalDate">
     DELETE
@@ -326,5 +461,34 @@
     DELETE
     FROM order_outbound_target_stock
     WHERE upload_date = #{date}
+  </delete>
+
+  <delete id="deleteOpsPlanRawByStDate" parameterType="java.time.LocalDate">
+    DELETE
+    FROM order_ops_plan_raw
+    WHERE st_date = #{date}
+  </delete>
+
+  <delete id="deleteOpsPlanRawAggByStDate" parameterType="java.time.LocalDate">
+    DELETE
+    FROM order_ops_plan_raw_agg
+    WHERE st_date = #{date}
+  </delete>
+
+  <delete id="deleteOpsMonthlyPlanAggByStDate" parameterType="java.time.LocalDate">
+    DELETE
+    FROM order_ops_plan_last_mon_agg
+    WHERE st_date = #{date}
+  </delete>
+
+  <delete id="deleteOpsPlanProductionRateByStDate" parameterType="java.time.LocalDate">
+    DELETE
+    FROM order_ops_plan_production_rate
+    WHERE st_date = #{date}
+  </delete>
+
+  <delete id="deleteOpsMonthlyPlanAgg">
+    DELETE
+    FROM order_ops_plan_last_mon_agg
   </delete>
 </mapper>

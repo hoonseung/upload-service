@@ -6,7 +6,7 @@ import static com.sewon.uploadservice.service.CSVFileValidator.csvInValidByPart;
 import static com.sewon.uploadservice.service.CSVFileValidator.fileEmptyCheck;
 import static com.sewon.uploadservice.service.CSVFileValidator.filesEmptyCheck;
 
-import com.sewon.uploadservice.service.CSVFileValidator;
+import com.sewon.uploadservice.service.OrderOperationService;
 import com.sewon.uploadservice.service.UploadService;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UploadController {
 
     private final UploadService uploadService;
+    private final OrderOperationService orderOperationService;
 
     @GetMapping()
     public String uploadHome() {
@@ -78,6 +79,23 @@ public class UploadController {
             return ResponseEntity.badRequest().body("fail");
         }
         uploadService.operationPlanUpload(file, date);
+        return ResponseEntity.ok().body("success");
+    }
+
+    @PostMapping("/v1/upload/operation/plan/month")
+    public ResponseEntity<String> updateOperationPlanLastMonthAgg(){
+        orderOperationService.updateOperationPlanLastMonthAgg();
+        return ResponseEntity.ok().body("success");
+    }
+
+    @PostMapping("/v1/upload/operation/plan/period")
+    public ResponseEntity<String> updateOperationPlanLastMonthAgg(
+        @RequestParam("startDate") LocalDate startDate,
+        @RequestParam("endDate") LocalDate endDate
+    ){
+        orderOperationService.updateOperationPlanLastMonthAggByPeriod(
+            startDate, endDate
+        );
         return ResponseEntity.ok().body("success");
     }
 }

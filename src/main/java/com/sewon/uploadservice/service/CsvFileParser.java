@@ -138,9 +138,9 @@ public class CsvFileParser {
                     OperationPlan.of(
                         LocalDate.parse(csvRecord.get(0)),
                         csvRecord.get(1),
-                        csvRecord.get(2),
+                        convertRegion(csvRecord.get(2)),
                         csvRecord.get(3),
-                        csvRecord.get(4),
+                        convertDoorType(csvRecord.get(4)),
                         csvRecord.get(5),
                         csvRecord.get(6),
                         csvRecord.get(7),
@@ -160,6 +160,52 @@ public class CsvFileParser {
         } catch (IOException e) {
             log.error("error message: {}", e.getMessage());
             throw new UncheckedIOException(e);
+        }
+    }
+
+    private String convertDoorType(String data){
+        switch (data) {
+            case "LHD" -> {
+                return "D01";
+            }
+            case "RHD" -> {
+                return "D02";
+            }
+            default -> {
+                return data;
+            }
+        }
+    }
+
+    private String convertRegion(String data){
+        switch (data) {
+            case "DOM" -> {
+                return "R01";
+            }
+            case "MID" -> {
+                return "R02";
+            }
+            case "GEN" -> {
+                return "R03";
+            }
+            case "EEC" -> {
+                return "R04";
+            }
+            case "AUS" -> {
+                return "R05";
+            }
+            case "HAC", "CAN" -> {
+                return "R06";
+            }
+            case "HMA", "KMA", "USA" -> {
+                return "R07";
+            }
+            case "RUS" -> {
+                return "R09";
+            }
+            default -> {
+                return data;
+            }
         }
     }
 
