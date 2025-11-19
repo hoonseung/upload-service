@@ -12,7 +12,7 @@ public enum CarSpec {
     FLOOR("FLOOR", new String[]{"카고밴", "샤시캡"}),
     FEM("FEM", new String[]{"패신저", "카고밴", "샤시캡"}),
     F_PAS("FPAS", new String[]{"패신저", "카고밴", "샤시캡"}),
-    R_PAS("RPAS", new String[]{"패신저", "카고밴"}),
+    R_PAS("RPAS", new String[]{"패신저", "카고밴", "샤시캡"}),
     B_WEX("BWEX", new String[]{"샤시캡"}),
     LAMP_EXT("LAMP_EXT", new String[]{"샤시캡"}),
     T_GATE("T/GATE", new String[]{"패신저"}),

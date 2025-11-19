@@ -17,9 +17,9 @@ public class OperationLastMonthlyPlanAggregation {
 
     private LocalDate stDate;
 
-    private LocalDate toDate;
-
     private LocalDate fromDate;
+
+    private LocalDate toDate;
 
     private String carItem;
 
@@ -42,6 +42,17 @@ public class OperationLastMonthlyPlanAggregation {
         LocalDate lastMonth = stDate.minusMonths(1);
         return new OperationLastMonthlyPlanAggregation(null, stDate,
             lastMonth.withDayOfMonth(1),  lastMonth.withDayOfMonth(lastMonth.lengthOfMonth()),
+            agg.carItem(), agg.partNo(), agg.doorType(), agg.region(), agg.dPlusTotal(), agg.responder(),
+            LocalDateTime.now(),
+            LocalDateTime.now()
+        );
+    }
+
+    public static OperationLastMonthlyPlanAggregation of(LocalDate stDate, CarPartNoTotalAgg agg,
+        LocalDate startDate, LocalDate endDate
+        ) {
+        return new OperationLastMonthlyPlanAggregation(null, stDate,
+            startDate, endDate,
             agg.carItem(), agg.partNo(), agg.doorType(), agg.region(), agg.dPlusTotal(), agg.responder(),
             LocalDateTime.now(),
             LocalDateTime.now()
