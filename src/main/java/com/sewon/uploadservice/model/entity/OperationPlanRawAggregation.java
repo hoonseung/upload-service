@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = {"createdDate", "modifyDate"})
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor

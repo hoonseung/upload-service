@@ -1,6 +1,8 @@
 package com.sewon.uploadservice.model.collection;
 
 import com.sewon.uploadservice.model.dto.car.sgn.CarGroupProps;
+import java.util.Arrays;
+import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -25,7 +27,7 @@ public enum CarSpec {
     T_SWG_RH_EXTN("T/SWG RH EXTN", new String[]{"카고밴"}),
     ROOF_FRT("ROOF FRT", new String[]{"패신저", "카고밴", "샤시캡"}),
     ROOF_CTR("ROOF CTR", new String[]{"패신저"}),
-    ROOF_RR("ROOT RR", new String[]{"패신저"}),
+    ROOF_RR("ROOF RR", new String[]{"패신저"}),
 
     ;
 
@@ -53,5 +55,12 @@ public enum CarSpec {
         CarSpec spec = getSpecs(groupName);
         if (spec == null) return 0;
         return spec.getSpecs().length;
+    }
+
+    public static boolean isSWsPec(String etc){
+        List<String> list = Arrays.stream(new String[]{"패신저", "카고밴", "샤시캡"})
+            .filter(item -> item.equals(etc))
+            .toList();
+        return !list.isEmpty();
     }
 }

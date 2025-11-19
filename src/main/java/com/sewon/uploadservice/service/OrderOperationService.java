@@ -45,9 +45,9 @@ public class OrderOperationService {
 
         // '정상'과 '비정상' 데이터로 분할
         Map<Boolean, List<CarPropsCombineSpec>> partitionedSpecs = carPropsCombineSpecList.stream()
-            .collect(Collectors.partitioningBy(item -> item.etc().isBlank()));
+            .collect(Collectors.partitioningBy(item ->!CarSpec.isSWsPec(item.etc())));
 
-        // 사양이 없는 것들
+        // SW1 사양이 아닌 것들
         List<CarPropsCombineSpec> normalSpecs = partitionedSpecs.get(true);
         // 사양이 있는 것들
         List<CarPropsCombineSpec> unNormalSpecs = partitionedSpecs.get(false);
