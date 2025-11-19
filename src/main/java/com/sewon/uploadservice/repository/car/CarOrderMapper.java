@@ -74,6 +74,8 @@ public interface CarOrderMapper {
 
     List<CarItemMonthAgg> findMonthlyAggByCarItem();
 
+    LocalDate findRecentlyStDate();
+
     void deleteMesOutboundStock(@Param("date")LocalDate date);
 
     void deleteOutboundTarget(@Param("date")LocalDate date);
@@ -85,4 +87,6 @@ public interface CarOrderMapper {
     void deleteOpsMonthlyPlanAggByStDate(@Param("date") LocalDate date);
 
     void deleteOpsPlanProductionRateByStDate(@Param("date") LocalDate date);
+
+    void deleteOpsMonthlyPlanAgg();
 }

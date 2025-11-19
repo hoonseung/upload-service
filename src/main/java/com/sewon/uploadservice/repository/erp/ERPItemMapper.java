@@ -12,5 +12,7 @@ public interface ERPItemMapper {
 
     List<CarGroupProps> findGroupListByPartType(@Param("carProps") List<String> carProps);
 
-    List<CarPartNoTotalAgg> findPartNoTotalLast4Weeks(@Param("stDate") LocalDate stDate);
+    List<CarPartNoTotalAgg> findPartNoTotalLast4Weeks(@Param("stDate") LocalDate stDate,
+        @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate, @Param("toDay") LocalDate toDay);
 }

@@ -445,6 +445,11 @@
     ORDER BY carItem;
   </select>
 
+  <select id="findRecentlyStDate" resultType="java.time.LocalDate">
+    SELECT DISTINCT st_date FROM order_ops_plan_last_mon_agg
+    ORDER BY st_date DESC LIMIT 1;
+  </select>
+
 
   <delete id="deleteMesOutboundStock" parameterType="java.time.LocalDate">
     DELETE
@@ -480,5 +485,10 @@
     DELETE
     FROM order_ops_plan_production_rate
     WHERE st_date = #{date}
+  </delete>
+
+  <delete id="deleteOpsMonthlyPlanAgg">
+    DELETE
+    FROM order_ops_plan_last_mon_agg
   </delete>
 </mapper>

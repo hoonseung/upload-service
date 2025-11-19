@@ -81,4 +81,21 @@ public class UploadController {
         uploadService.operationPlanUpload(file, date);
         return ResponseEntity.ok().body("success");
     }
+
+    @PostMapping("/v1/upload/operation/plan/month")
+    public ResponseEntity<String> updateOperationPlanLastMonthAgg(){
+        orderOperationService.updateOperationPlanLastMonthAgg();
+        return ResponseEntity.ok().body("success");
+    }
+
+    @PostMapping("/v1/upload/operation/plan/period")
+    public ResponseEntity<String> updateOperationPlanLastMonthAgg(
+        @RequestParam("startDate") LocalDate startDate,
+        @RequestParam("endDate") LocalDate endDate
+    ){
+        orderOperationService.updateOperationPlanLastMonthAggByPeriod(
+            startDate, endDate
+        );
+        return ResponseEntity.ok().body("success");
+    }
 }

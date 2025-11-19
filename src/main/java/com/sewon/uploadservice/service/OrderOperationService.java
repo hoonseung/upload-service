@@ -60,13 +60,51 @@ public class OrderOperationService {
             processUnNormalSpecs(stDate, unNormalSpecs);
         }
 
-        carOrderMapper.bulkInsertOperationLastMonthlyPlanAgg(
-        erpItemMapper.findPartNoTotalLast4Weeks(stDate)
+        List<OperationLastMonthlyPlanAggregation> aggregations = erpItemMapper.findPartNoTotalLast4Weeks(
+                stDate, null, null, null)
             .stream()
             .map(agg -> OperationLastMonthlyPlanAggregation.of(stDate, agg))
-            .toList()
+            .toList();
+        carOrderMapper.bulkInsertOperationLastMonthlyPlanAgg(
+            aggregations
         );
     }
+
+    @Transactional(transactionManager = "postgresqlTransactionManager")
+    public void updateOperationPlanLastMonthAgg(){
+        LocalDate recentlyStDate = carOrderMapper.findRecentlyStDate();
+        LocalDate today = LocalDate.now();
+        carOrderMapper.deleteOpsMonthlyPlanAgg();
+
+        List<OperationLastMonthlyPlanAggregation> aggregations = erpItemMapper.findPartNoTotalLast4Weeks(
+            null, null, null,
+                today)
+            .stream()
+            .map(agg -> OperationLastMonthlyPlanAggregation.of(recentlyStDate, agg,
+                today.minusMonths(1), today))
+            .toList();
+        carOrderMapper.bulkInsertOperationLastMonthlyPlanAgg(
+            aggregations
+        );
+    }
+
+    @Transactional(transactionManager = "postgresqlTransactionManager")
+    public void updateOperationPlanLastMonthAggByPeriod(LocalDate startDate, LocalDate endDate){
+        LocalDate recentlyStDate = carOrderMapper.findRecentlyStDate();
+        carOrderMapper.deleteOpsMonthlyPlanAgg();
+
+        List<OperationLastMonthlyPlanAggregation> aggregations = erpItemMapper.findPartNoTotalLast4Weeks(
+            null,
+                startDate, endDate, null)
+            .stream()
+            .map(agg -> OperationLastMonthlyPlanAggregation.of(recentlyStDate, agg,
+                startDate, endDate))
+            .toList();
+        carOrderMapper.bulkInsertOperationLastMonthlyPlanAgg(
+            aggregations
+        );
+    }
+
     /**
      * 품번 처리 섹션
      * - 최근 4주 기준 품번 합계에서 상위 20% 품번 추출
@@ -79,7 +117,8 @@ public class OrderOperationService {
         List<CarItemMonthAgg> monthlyAggByCarItem = carOrderMapper.findMonthlyAggByCarItem();
 
         // 한달 전 4주 서열에서 품번 합계 추출
-        List<CarPartNoTotalAgg> partNoTotalLast4Weeks = erpItemMapper.findPartNoTotalLast4Weeks(stDate);
+        List<CarPartNoTotalAgg> partNoTotalLast4Weeks = erpItemMapper.findPartNoTotalLast4Weeks(stDate,
+            null, null, null);
 
         if (monthlyAggByCarItem == null || monthlyAggByCarItem.isEmpty()) {
             return;
@@ -211,6 +250,7 @@ public class OrderOperationService {
                     stDate, item.carProps(), getGroupProps(item.shouldSplitGroupProps()),
                     normalMap.get(item.carProps())
                 ))
+                .distinct()
                 .toList()
         );
     }
@@ -264,6 +304,7 @@ public class OrderOperationService {
                     stDate, item.carProps(), getGroupProps(item.shouldSplitGroupProps()),
                     commonNormalMap.get(item.carProps()), "공통"
                 ))
+                .distinct()
                 .toList()
         );
     }
@@ -298,7 +339,7 @@ public class OrderOperationService {
             String key2 = spec.carProps() + spec.groupProps() + spec.etc();
             MonthProductAgg monthProductAgg = collectMap.get(key1);
             String groupProps = findGroupProps.get(key2);
-            if (Objects.isNull(monthProductAgg) || (groupProps != null && groupProps.isBlank()) ){
+            if (Objects.isNull(monthProductAgg) || (groupProps.isBlank()) ){
                 continue;
             }
             OperationPlanRawAggregation aggregation = OperationPlanRawAggregation.of(
@@ -306,7 +347,7 @@ public class OrderOperationService {
                 monthProductAgg);
             result.add(aggregation);
         }
-        carOrderMapper.bulkInsertOperationPlanAgg(result);
+        carOrderMapper.bulkInsertOperationPlanAgg(result.stream().distinct().toList());
     }
 
 
