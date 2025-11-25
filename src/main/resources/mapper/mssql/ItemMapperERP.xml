@@ -35,6 +35,11 @@
         WHERE a.등록일 BETWEEN DATEADD(month, -1, #{toDay})
         and #{toDay}
       </when>
+        <!-- stDate로 부터 5개월 전 -->
+      <when test="past5Months != null and past5Months == true and stDate != null">
+        WHERE a.등록일 BETWEEN DATEADD(MONTH, -5, #{stDate})
+        AND #{stDate}
+      </when>
       <otherwise>
         <!-- 전 월 1일 ~ 전월 말 -->
         WHERE a.등록일 BETWEEN dateadd(day, 1, EOMONTH(#{stDate}, -2))

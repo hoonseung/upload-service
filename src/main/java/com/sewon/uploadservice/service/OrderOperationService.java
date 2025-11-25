@@ -9,6 +9,7 @@ import com.sewon.uploadservice.model.dto.car.spn.CarItemMonthAgg;
 import com.sewon.uploadservice.model.dto.car.spn.CarPartNoTotalAgg;
 import com.sewon.uploadservice.model.dto.car.spn.CarProductionRate;
 import com.sewon.uploadservice.model.entity.OperationLastMonthlyPlanAggregation;
+import com.sewon.uploadservice.model.entity.OperationPastMonthlyPlanAggregation;
 import com.sewon.uploadservice.model.entity.OperationPlanProductionRate;
 import com.sewon.uploadservice.model.entity.OperationPlanRawAggregation;
 import com.sewon.uploadservice.repository.car.CarOrderMapper;
@@ -60,25 +61,27 @@ public class OrderOperationService {
             processUnNormalSpecs(stDate, unNormalSpecs);
         }
 
-        List<OperationLastMonthlyPlanAggregation> aggregations = erpItemMapper.findPartNoTotalLast4Weeks(
-                stDate, null, null, null)
-            .stream()
-            .map(agg -> OperationLastMonthlyPlanAggregation.of(stDate, agg))
-            .toList();
-        carOrderMapper.bulkInsertOperationLastMonthlyPlanAgg(
-            aggregations
-        );
+        List<OperationLastMonthlyPlanAggregation> lastAggregations = getOperationLastMonthlyPlanAggregations(
+            stDate);
+
+        List<OperationPastMonthlyPlanAggregation> pastAggregations = getOperationPastMonthlyPlanAggregations(
+            stDate);
+
+        carOrderMapper.bulkInsertOperationLastMonthlyPlanAgg(lastAggregations);
+
+        carOrderMapper.deleteOpsPastMonthlyPlanAgg();
+        carOrderMapper.bulkInsertOperationPastMonthlyPlanAgg(pastAggregations);
     }
 
     @Transactional(transactionManager = "postgresqlTransactionManager")
     public void updateOperationPlanLastMonthAgg(){
         LocalDate recentlyStDate = carOrderMapper.findRecentlyStDate();
         LocalDate today = LocalDate.now();
-        carOrderMapper.deleteOpsMonthlyPlanAgg();
+        carOrderMapper.deleteOpsLastMonthlyPlanAgg();
 
         List<OperationLastMonthlyPlanAggregation> aggregations = erpItemMapper.findPartNoTotalLast4Weeks(
             null, null, null,
-                today)
+                today, false)
             .stream()
             .map(agg -> OperationLastMonthlyPlanAggregation.of(recentlyStDate, agg,
                 today.minusMonths(1), today))
@@ -91,11 +94,11 @@ public class OrderOperationService {
     @Transactional(transactionManager = "postgresqlTransactionManager")
     public void updateOperationPlanLastMonthAggByPeriod(LocalDate startDate, LocalDate endDate){
         LocalDate recentlyStDate = carOrderMapper.findRecentlyStDate();
-        carOrderMapper.deleteOpsMonthlyPlanAgg();
+        carOrderMapper.deleteOpsLastMonthlyPlanAgg();
 
         List<OperationLastMonthlyPlanAggregation> aggregations = erpItemMapper.findPartNoTotalLast4Weeks(
             null,
-                startDate, endDate, null)
+                startDate, endDate, null, false)
             .stream()
             .map(agg -> OperationLastMonthlyPlanAggregation.of(recentlyStDate, agg,
                 startDate, endDate))
@@ -118,7 +121,7 @@ public class OrderOperationService {
 
         // 한달 전 4주 서열에서 품번 합계 추출
         List<CarPartNoTotalAgg> partNoTotalLast4Weeks = erpItemMapper.findPartNoTotalLast4Weeks(stDate,
-            null, null, null);
+            null, null, null, false);
 
         if (monthlyAggByCarItem == null || monthlyAggByCarItem.isEmpty()) {
             return;
@@ -350,6 +353,23 @@ public class OrderOperationService {
         carOrderMapper.bulkInsertOperationPlanAgg(result.stream().distinct().toList());
     }
 
+    private List<OperationLastMonthlyPlanAggregation> getOperationLastMonthlyPlanAggregations(
+        LocalDate stDate) {
+        return erpItemMapper.findPartNoTotalLast4Weeks(
+                stDate, null, null, null, false)
+            .stream()
+            .map(agg -> OperationLastMonthlyPlanAggregation.of(stDate, agg))
+            .toList();
+    }
+
+    private List<OperationPastMonthlyPlanAggregation> getOperationPastMonthlyPlanAggregations(
+        LocalDate stDate) {
+        return erpItemMapper.findPartNoTotalLast4Weeks(
+                stDate, null, null, null, true)
+            .stream()
+            .map(agg -> OperationPastMonthlyPlanAggregation.of(stDate, agg))
+            .toList();
+    }
 
     private String getGroupProps(String shouldParsing) {
         if (shouldParsing == null) {

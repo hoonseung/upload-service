@@ -12,6 +12,7 @@ import com.sewon.uploadservice.model.entity.MesInboundStockBox;
 import com.sewon.uploadservice.model.entity.MesInboundStock;
 import com.sewon.uploadservice.model.dto.mes.MesBoxData;
 import com.sewon.uploadservice.model.entity.MesOutboundStock;
+import com.sewon.uploadservice.model.entity.OperationPastMonthlyPlanAggregation;
 import com.sewon.uploadservice.model.entity.OperationPlanProductionRate;
 import com.sewon.uploadservice.model.entity.OperationPlanRaw;
 import com.sewon.uploadservice.model.entity.OperationPlanRawAggregation;
@@ -44,6 +45,8 @@ public interface CarOrderMapper {
     void bulkInsertOperationPlanAgg(@Param("operationPlanAgg") List<OperationPlanRawAggregation> operationPlanAgg);
 
     void bulkInsertOperationLastMonthlyPlanAgg(@Param("operationPlanMAgg") List<OperationLastMonthlyPlanAggregation> operationPlanMAgg);
+
+    void bulkInsertOperationPastMonthlyPlanAgg(@Param("operationPlanMAgg") List<OperationPastMonthlyPlanAggregation> operationPlanMAgg);
 
     // .service.partitioningPartNoByOrderPlanRawOperation 용도
     void bulkInsertOperationPlanProductionRate(@Param("operationPlanRate") List<OperationPlanProductionRate> operationPlanRate);
@@ -88,5 +91,7 @@ public interface CarOrderMapper {
 
     void deleteOpsPlanProductionRateByStDate(@Param("date") LocalDate date);
 
-    void deleteOpsMonthlyPlanAgg();
+    void deleteOpsLastMonthlyPlanAgg();
+
+    void deleteOpsPastMonthlyPlanAgg();
 }
