@@ -21,13 +21,27 @@ public enum CarSpec {
     T_GATE_EXT("T/GATE_EXT", new String[]{"패신저"}),
     F_RDR_DRI("FRDR_DRI", new String[]{"패신저", "카고밴", "샤시캡"}),
     F_RDR_ASS("FRDR_ASS", new String[]{"패신저", "카고밴", "샤시캡"}),
+
     T_SWG_LH("T/SWG LH", new String[]{"카고밴"}),
+    T_SWG_LH_V2("T/SWG_LH", new String[]{"카고밴"}),
+
     T_SWG_RH("T/SWG RH", new String[]{"카고밴"}),
+    T_SWG_RH_V2("T/SWG_RH", new String[]{"카고밴"}),
+
     T_SWG_LH_EXTN("T/SWG LH EXTN", new String[]{"카고밴"}),
+    T_SWG_LH_EXTN_V2("T/SWG_LH EXTN", new String[]{"카고밴"}),
+
     T_SWG_RH_EXTN("T/SWG RH EXTN", new String[]{"카고밴"}),
+    T_SWG_RH_EXTN_V2("T/SWG_RH EXTN", new String[]{"카고밴"}),
+
     ROOF_FRT("ROOF FRT", new String[]{"패신저", "카고밴", "샤시캡"}),
+    ROOF_FRT_V2("ROOF_FRT", new String[]{"패신저", "카고밴", "샤시캡"}),
+
     ROOF_CTR("ROOF CTR", new String[]{"패신저"}),
+    ROOF_CTR_V2("ROOF_CTR", new String[]{"패신저"}),
+
     ROOF_RR("ROOF RR", new String[]{"패신저"}),
+    ROOF_RR_V2("ROOF_RR", new String[]{"패신저"}),
 
     ;
 

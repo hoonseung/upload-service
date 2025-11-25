@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 
 public record CarPropsGroupSpecCombineSpec(
+    Integer seqNo,
     String carProps,
     String groupProps,
     String etc
@@ -20,7 +21,7 @@ public record CarPropsGroupSpecCombineSpec(
         }
         return Arrays.stream(
             Objects.requireNonNull(CarSpec.getSpecs(groupName)).getSpecs())
-            .map(item -> new CarPropsGroupSpecCombineSpec(props.carProps(), groupName, item))
+            .map(item -> new CarPropsGroupSpecCombineSpec(props.seqNo(), props.carProps(), groupName, item))
             .toList();
     }
 

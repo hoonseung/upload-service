@@ -4,7 +4,7 @@
   <select  id="findGroupListByPartType" resultType="CarGroupProps">
     WITH RANK AS (
       SELECT A.차종 AS carProps, A.품명 AS groupProps,
-      RANK() OVER (PARTITION BY A.차종, A.품명 ORDER BY A.등록일 DESC) AS RN
+      RANK() OVER (PARTITION BY A.차종, REPLACE(A.품명, '_', ' ') ORDER BY A.등록일 DESC) AS RN
       FROM TB_PDM_ORDER_ForWeeks A
     <where>
       등록일 >= DATEADD(MONTH , -2, (SELECT MAX(등록일) FROM TB_PDM_ORDER_ForWeeks))
@@ -18,7 +18,7 @@
       </if>
     </where>
     GROUP BY A.차종, A.품명, A.등록일
-    ) SELECT carProps, groupProps FROM RANK WHERE RN = 1
+    ) SELECT ROW_NUMBER() over (ORDER BY carProps, groupProps) AS seq, carProps, groupProps FROM RANK WHERE RN = 1
   </select >
 
   <select id="findPartNoTotalLast4Weeks" resultType="CarPartNoTotalAgg">

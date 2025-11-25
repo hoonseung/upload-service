@@ -327,7 +327,7 @@ public class OrderOperationService {
 
         // 그룹 + etc 키 / 그룹 밸류 설정
         Map<String, String> findGroupProps = combineSpecs.stream().collect(Collectors.toMap(
-            item -> item.carProps() + item.groupProps() + item.etc(),
+            item -> item.seqNo() + item.carProps() + item.groupProps() + item.etc(),
             CarPropsGroupSpecCombineSpec::groupProps,
             (existing, replacement) -> existing // 중복 키가 있을 경우 기존 값 유지
         ));
@@ -336,7 +336,7 @@ public class OrderOperationService {
         List<OperationPlanRawAggregation> result = new ArrayList<>();
         for (CarPropsGroupSpecCombineSpec spec : combineSpecs){
             String key1 = spec.carProps() + spec.etc();
-            String key2 = spec.carProps() + spec.groupProps() + spec.etc();
+            String key2 = spec.seqNo() + spec.carProps() + spec.groupProps() + spec.etc();
             MonthProductAgg monthProductAgg = collectMap.get(key1);
             String groupProps = findGroupProps.get(key2);
             if (Objects.isNull(monthProductAgg) || (groupProps.isBlank()) ){

@@ -194,7 +194,7 @@ public class CsvFileParser {
             case "AUS" -> {
                 return "R05";
             }
-            case "HAC", "CAN" -> {
+            case "HAC", "CAN", "KCI" -> {
                 return "R06";
             }
             case "HMA", "KMA", "USA" -> {
