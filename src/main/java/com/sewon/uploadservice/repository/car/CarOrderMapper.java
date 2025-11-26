@@ -17,6 +17,7 @@ import com.sewon.uploadservice.model.entity.OperationPlanProductionRate;
 import com.sewon.uploadservice.model.entity.OperationPlanRaw;
 import com.sewon.uploadservice.model.entity.OperationPlanRawAggregation;
 import com.sewon.uploadservice.model.entity.OutboundTarget;
+import com.sewon.uploadservice.model.entity.SalesPrice;
 import java.time.LocalDate;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
@@ -47,6 +48,8 @@ public interface CarOrderMapper {
     void bulkInsertOperationLastMonthlyPlanAgg(@Param("operationPlanMAgg") List<OperationLastMonthlyPlanAggregation> operationPlanMAgg);
 
     void bulkInsertOperationPastMonthlyPlanAgg(@Param("operationPlanMAgg") List<OperationPastMonthlyPlanAggregation> operationPlanMAgg);
+
+    void bulkInsertSalesPrice(@Param("salesPrice") List<SalesPrice> salesPrice);
 
     // .service.partitioningPartNoByOrderPlanRawOperation 용도
     void bulkInsertOperationPlanProductionRate(@Param("operationPlanRate") List<OperationPlanProductionRate> operationPlanRate);
@@ -94,4 +97,6 @@ public interface CarOrderMapper {
     void deleteOpsLastMonthlyPlanAgg();
 
     void deleteOpsPastMonthlyPlanAgg();
+
+    void deleteSalesPrice();
 }

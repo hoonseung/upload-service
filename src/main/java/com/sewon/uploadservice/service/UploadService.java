@@ -15,6 +15,7 @@ import com.sewon.uploadservice.model.dto.csv.Ttime;
 import com.sewon.uploadservice.model.entity.MesInboundStockBox;
 import com.sewon.uploadservice.model.entity.OperationPlanRaw;
 import com.sewon.uploadservice.model.entity.OutboundTarget;
+import com.sewon.uploadservice.model.entity.SalesPrice;
 import com.sewon.uploadservice.repository.car.CarOrderMapper;
 import com.sewon.uploadservice.model.dto.erp.TargetLocationDto;
 import java.time.LocalDate;
@@ -146,6 +147,23 @@ public class UploadService {
             carOrderMapper.bulkInsertOperationPlanRaw(chunk);
         }
         orderOperationService.orderPlanRawOperation(stDate);
+    }
+
+    @Transactional(transactionManager = "postgresqlTransactionManager")
+    public void salesPriceUnitUpload(MultipartFile file){
+        List<SalesPrice> sellingPrices = csvFileParser.parsingSalesPriceUnitFile(file)
+                .stream().map(SalesPrice::from).toList();
+        carOrderMapper.deleteSalesPrice();
+
+        List<List<SalesPrice>> chunks = new ArrayList<>();
+        int chunkSize = 500;
+        for (int i = 0; i < sellingPrices.size(); i += chunkSize) {
+            int endIdx = Math.min(i + chunkSize, sellingPrices.size());
+            chunks.add(sellingPrices.subList(i, endIdx));
+        }
+        for (List<SalesPrice> chunk : chunks) {
+            carOrderMapper.bulkInsertSalesPrice(chunk);
+        }
     }
 
 

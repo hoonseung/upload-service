@@ -190,6 +190,23 @@
     </if>
   </insert>
 
+  <insert id="bulkInsertSalesPrice" parameterType="java.util.List">
+    <if test="salesPrice != null and salesPrice.size > 0">
+      INSERT INTO common_sales_price_unit (
+      part_no, supplier, part_name, car_item, product_code, explain, car_props, group_props, unit,
+      price_unit, price, to_date, from_date, create_date
+      ) VALUES
+      <foreach collection="salesPrice" item="item" separator=",">
+        (
+        #{item.partNo}, #{item.supplier}, #{item.partName}, #{item.carItem}, #{item.productCode},
+        #{item.explain},  #{item.carProps}, #{item.groupProps}, #{item.unit},
+        #{item.priceUnit},  #{item.price}, #{item.toDate}, #{item.fromDate},
+        #{item.createdDate}
+        )
+      </foreach>
+    </if>
+  </insert>
+
   <insert id="bulkInsertOperationPlanProductionRate" parameterType="java.util.List">
     <if test="operationPlanRate != null and operationPlanRate.size > 0">
       INSERT INTO order_ops_plan_production_rate (
@@ -512,4 +529,9 @@
     DELETE
     FROM order_ops_plan_past_mon_agg
   </delete>
+
+  <delete id="deleteSalesPrice">
+  DELETE
+  FROM common_sales_price_unit
+</delete>
 </mapper>

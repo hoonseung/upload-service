@@ -98,4 +98,15 @@ public class UploadController {
         );
         return ResponseEntity.ok().body("success");
     }
+
+    @PostMapping("/v1/upload/sales/price")
+    public ResponseEntity<String> uploadSalesPriceUnit(
+        @RequestParam("file") MultipartFile file
+    ){
+        if (fileEmptyCheck(file) || csvInValidByPart(file, "판매단가")){
+            return ResponseEntity.badRequest().body("fail");
+        }
+        uploadService.salesPriceUnitUpload(file);
+        return ResponseEntity.ok().body("success");
+    }
 }

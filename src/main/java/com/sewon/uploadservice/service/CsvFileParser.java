@@ -15,6 +15,7 @@ import com.sewon.uploadservice.model.dto.csv.CsvData;
 import com.sewon.uploadservice.model.dto.csv.DayPlusData;
 import com.sewon.uploadservice.model.dto.csv.OperationPlan;
 import com.sewon.uploadservice.model.dto.csv.OutboundTargetData;
+import com.sewon.uploadservice.model.dto.csv.SalesPriceUnit;
 import com.sewon.uploadservice.model.dto.csv.Ttime;
 import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
 import java.io.IOException;
@@ -22,6 +23,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -153,6 +155,35 @@ public class CsvFileParser {
                         csvRecord.get(14),
                         csvRecord.get(15),
                         date
+                    )
+                );
+            }
+            return dataList;
+        } catch (IOException e) {
+            log.error("error message: {}", e.getMessage());
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public List<SalesPriceUnit> parsingSalesPriceUnitFile(MultipartFile file) {
+        try (CSVParser parser = getParser(file, Charset.forName("EUC-KR"))) {
+            List<SalesPriceUnit> dataList = new ArrayList<>();
+            for (CSVRecord csvRecord : parser.getRecords()) {
+                dataList.add(
+                    SalesPriceUnit.of(
+                        csvRecord.get(0),
+                        csvRecord.get(1),
+                        csvRecord.get(2),
+                        csvRecord.get(3),
+                        csvRecord.get(4),
+                        csvRecord.get(5),
+                        csvRecord.get(6),
+                        csvRecord.get(7),
+                        csvRecord.get(8),
+                        csvRecord.get(9),
+                        BigDecimal.valueOf(Double.parseDouble(csvRecord.get(10).replaceAll("[,\\s]", ""))),
+                        LocalDate.parse(csvRecord.get(11)),
+                        LocalDate.parse(csvRecord.get(12))
                     )
                 );
             }
