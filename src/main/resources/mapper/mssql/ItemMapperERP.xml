@@ -16,6 +16,8 @@
           #{carProp}
         </foreach>
       </if>
+      AND
+      (대응지 LIKE N'%위해%' OR 대응지 LIKE N'%덕주%' OR 대응지 LIKE N'%베트남%' OR 대응지 LIKE N'%비나%')
     </where>
     GROUP BY A.차종, A.품명, A.등록일
     ) SELECT ROW_NUMBER() over (ORDER BY carProps, groupProps) AS seq, carProps, groupProps FROM RANK WHERE RN = 1
