@@ -13,6 +13,6 @@ CREATE TABLE common_sales_price_unit
     price DECIMAL(20, 2) NOT NULL,
     to_date DATE NOT NULL,
     from_date DATE NOT NULL,
-    create_date TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL,
     PRIMARY KEY (part_no, price)
 )

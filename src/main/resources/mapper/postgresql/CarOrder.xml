@@ -194,13 +194,57 @@
     <if test="salesPrice != null and salesPrice.size > 0">
       INSERT INTO common_sales_price_unit (
       part_no, supplier, part_name, car_item, product_code, explain, car_props, group_props, unit,
-      price_unit, price, to_date, from_date, create_date
+      price_unit, price, to_date, from_date, created_at
       ) VALUES
       <foreach collection="salesPrice" item="item" separator=",">
         (
         #{item.partNo}, #{item.supplier}, #{item.partName}, #{item.carItem}, #{item.productCode},
         #{item.explain},  #{item.carProps}, #{item.groupProps}, #{item.unit},
         #{item.priceUnit},  #{item.price}, #{item.toDate}, #{item.fromDate},
+        #{item.createdDate}
+        )
+      </foreach>
+    </if>
+  </insert>
+
+  <insert id="bulkInsertStdOutsourcingCost" parameterType="java.util.List">
+    <if test="stdCost != null and stdCost.size > 0">
+      INSERT INTO common_std_outsourcing_cost (
+      part_no, price_set, product_code, mat_cost, labor_cost, changing_cost, fixed_cost, out_sourcing_cost, total_cost,
+      mat_cost_down, labor_cost_down, changing_cost_down, fixed_cost_down, out_sourcing_cost_down,
+      cost_modify_date, groups, groups2, car_props_type, car_props, freezing, created_at
+      ) VALUES
+      <foreach collection="stdCost" item="item" separator=",">
+        (
+        #{item.partNo}, #{item.priceSet}, #{item.productCode},
+         #{item.matCost}, #{item.laborCost},
+         #{item.changingCost}, #{item.fixedCost}, #{item.outSourcingCost}, #{item.totalCost},
+         #{item.matCostDown}, #{item.laborCostDown},
+         #{item.changingCostDown}, #{item.fixedCostDown}, #{item.outSourcingCostDown},
+        #{item.costModifyDate},  #{item.groups}, #{item.groups2}, #{item.carPropsType},
+        #{item.carProps},  #{item.freezing},
+        #{item.createdDate}
+        )
+      </foreach>
+    </if>
+  </insert>
+
+  <insert id="bulkInsertPurchaseOutsourcingCost" parameterType="java.util.List">
+    <if test="purchaseCost != null and purchaseCost.size > 0">
+      INSERT INTO common_outsourcing_cost (
+      price_list, name, price_unit, product_code, part_no, groups, groups2, unit, start_date,
+      end_date, etc, explanation, out_sourcing_cost, modify_date, factory, car_props_type,
+      std_unit, created_at
+      ) VALUES
+      <foreach collection="purchaseCost" item="item" separator=",">
+        (
+        #{item.priceList}, #{item.name}, #{item.priceUnit},
+        #{item.productCode}, #{item.partNo},
+        #{item.groups}, #{item.groups2}, #{item.unit},
+        #{item.startDate}, #{item.endDate},
+        #{item.etc}, #{item.explain},
+        #{item.outSourcingCost}, #{item.modifyDate}, #{item.factory},
+        #{item.carPropsType},  #{item.stdUnit},
         #{item.createdDate}
         )
       </foreach>
@@ -534,4 +578,15 @@
   DELETE
   FROM common_sales_price_unit
 </delete>
+
+  <delete id="deleteStdOutsourcingCost">
+    DELETE
+    FROM common_std_outsourcing_cost
+  </delete>
+
+  <delete id="deletePurchaseOutsourcingCost">
+    DELETE
+    FROM common_outsourcing_cost
+  </delete>
+
 </mapper>

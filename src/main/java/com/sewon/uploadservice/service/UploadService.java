@@ -1,6 +1,7 @@
 package com.sewon.uploadservice.service;
 
 import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
+import com.sewon.uploadservice.model.entity.PurchaseOutsourcingCost;
 import com.sewon.uploadservice.model.entity.CarOrder;
 import com.sewon.uploadservice.model.dto.erp.ERPStockRecord;
 import com.sewon.uploadservice.model.entity.MesBox;
@@ -16,6 +17,7 @@ import com.sewon.uploadservice.model.entity.MesInboundStockBox;
 import com.sewon.uploadservice.model.entity.OperationPlanRaw;
 import com.sewon.uploadservice.model.entity.OutboundTarget;
 import com.sewon.uploadservice.model.entity.SalesPrice;
+import com.sewon.uploadservice.model.entity.StdOutsourcingCost;
 import com.sewon.uploadservice.repository.car.CarOrderMapper;
 import com.sewon.uploadservice.model.dto.erp.TargetLocationDto;
 import java.time.LocalDate;
@@ -163,6 +165,38 @@ public class UploadService {
         }
         for (List<SalesPrice> chunk : chunks) {
             carOrderMapper.bulkInsertSalesPrice(chunk);
+        }
+    }
+
+    @Transactional(transactionManager = "postgresqlTransactionManager")
+    public void stdOutsourcingCostUpload(MultipartFile file){
+        List<StdOutsourcingCost> sellingPrices = csvFileParser.parsingStdOutsourcingCostFile(file);
+        carOrderMapper.deleteStdOutsourcingCost();
+
+        List<List<StdOutsourcingCost>> chunks = new ArrayList<>();
+        int chunkSize = 500;
+        for (int i = 0; i < sellingPrices.size(); i += chunkSize) {
+            int endIdx = Math.min(i + chunkSize, sellingPrices.size());
+            chunks.add(sellingPrices.subList(i, endIdx));
+        }
+        for (List<StdOutsourcingCost> chunk : chunks) {
+            carOrderMapper.bulkInsertStdOutsourcingCost(chunk);
+        }
+    }
+
+    @Transactional(transactionManager = "postgresqlTransactionManager")
+    public void purchaseOutsourcingCostUpload(MultipartFile file){
+        List<PurchaseOutsourcingCost> sellingPrices = csvFileParser.parsingPurchaseOutsourcingCostFile(file);
+        carOrderMapper.deletePurchaseOutsourcingCost();
+
+        List<List<PurchaseOutsourcingCost>> chunks = new ArrayList<>();
+        int chunkSize = 500;
+        for (int i = 0; i < sellingPrices.size(); i += chunkSize) {
+            int endIdx = Math.min(i + chunkSize, sellingPrices.size());
+            chunks.add(sellingPrices.subList(i, endIdx));
+        }
+        for (List<PurchaseOutsourcingCost> chunk : chunks) {
+            carOrderMapper.bulkInsertPurchaseOutsourcingCost(chunk);
         }
     }
 

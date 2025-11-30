@@ -109,4 +109,26 @@ public class UploadController {
         uploadService.salesPriceUnitUpload(file);
         return ResponseEntity.ok().body("success");
     }
+
+    @PostMapping("/v1/upload/cost/std")
+    public ResponseEntity<String> uploadStdOutsourcingCost(
+        @RequestParam("file") MultipartFile file
+    ){
+        if (fileEmptyCheck(file) || csvInValidByPart(file, "표준외주비")){
+            return ResponseEntity.badRequest().body("fail");
+        }
+        uploadService.stdOutsourcingCostUpload(file);
+        return ResponseEntity.ok().body("success");
+    }
+
+    @PostMapping("/v1/upload/cost/purchase")
+    public ResponseEntity<String> uploadPurchaseOutsourcingCost(
+        @RequestParam("file") MultipartFile file
+    ){
+        if (fileEmptyCheck(file) || csvInValidByPart(file, "구매외주비")){
+            return ResponseEntity.badRequest().body("fail");
+        }
+        uploadService.purchaseOutsourcingCostUpload(file);
+        return ResponseEntity.ok().body("success");
+    }
 }

@@ -16,6 +16,8 @@ import com.sewon.uploadservice.model.dto.csv.DayPlusData;
 import com.sewon.uploadservice.model.dto.csv.OperationPlan;
 import com.sewon.uploadservice.model.dto.csv.OutboundTargetData;
 import com.sewon.uploadservice.model.dto.csv.SalesPriceUnit;
+import com.sewon.uploadservice.model.entity.PurchaseOutsourcingCost;
+import com.sewon.uploadservice.model.entity.StdOutsourcingCost;
 import com.sewon.uploadservice.model.dto.csv.Ttime;
 import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
 import java.io.IOException;
@@ -181,9 +183,78 @@ public class CsvFileParser {
                         csvRecord.get(7),
                         csvRecord.get(8),
                         csvRecord.get(9),
-                        BigDecimal.valueOf(Double.parseDouble(csvRecord.get(10).replaceAll("[,\\s]", ""))),
+                        getBigDecimal(csvRecord.get(10)),
                         LocalDate.parse(csvRecord.get(11)),
                         LocalDate.parse(csvRecord.get(12))
+                    )
+                );
+            }
+            return dataList;
+        } catch (IOException e) {
+            log.error("error message: {}", e.getMessage());
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public List<StdOutsourcingCost> parsingStdOutsourcingCostFile(MultipartFile file) {
+        try (CSVParser parser = getParser(file, Charset.forName("EUC-KR"))) {
+            List<StdOutsourcingCost> dataList = new ArrayList<>();
+            for (CSVRecord csvRecord : parser.getRecords()) {
+                dataList.add(
+                    StdOutsourcingCost.of(
+                        csvRecord.get(0),
+                        csvRecord.get(1),
+                        csvRecord.get(2),
+                        getBigDecimal(csvRecord.get(3)),
+                        getBigDecimal(csvRecord.get(4)),
+                        getBigDecimal(csvRecord.get(5)),
+                        getBigDecimal(csvRecord.get(6)),
+                        getBigDecimal(csvRecord.get(7)),
+                        getBigDecimal(csvRecord.get(8)),
+                        getBigDecimal(csvRecord.get(9)),
+                        getBigDecimal(csvRecord.get(10)),
+                        getBigDecimal(csvRecord.get(11)),
+                        getBigDecimal(csvRecord.get(12)),
+                        getBigDecimal(csvRecord.get(13)),
+                        LocalDate.parse(csvRecord.get(14)),
+                        csvRecord.get(15),
+                        csvRecord.get(16),
+                        csvRecord.get(17),
+                        csvRecord.get(18),
+                        csvRecord.get(19)
+                    )
+                );
+            }
+            return dataList;
+        } catch (IOException e) {
+            log.error("error message: {}", e.getMessage());
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public List<PurchaseOutsourcingCost> parsingPurchaseOutsourcingCostFile(MultipartFile file) {
+        try (CSVParser parser = getParser(file, Charset.forName("EUC-KR"))) {
+            List<PurchaseOutsourcingCost> dataList = new ArrayList<>();
+            for (CSVRecord csvRecord : parser.getRecords()) {
+                dataList.add(
+                    PurchaseOutsourcingCost.of(
+                        csvRecord.get(0),
+                        csvRecord.get(1),
+                        csvRecord.get(2),
+                        csvRecord.get(3),
+                        csvRecord.get(4),
+                        csvRecord.get(5),
+                        csvRecord.get(6),
+                        csvRecord.get(7),
+                        LocalDate.parse(csvRecord.get(8)),
+                        LocalDate.parse(csvRecord.get(9)),
+                        csvRecord.get(10),
+                        csvRecord.get(11),
+                        getBigDecimal(csvRecord.get(12)),
+                        LocalDate.parse(csvRecord.get(13)),
+                        csvRecord.get(14),
+                        csvRecord.get(15),
+                        csvRecord.get(16)
                     )
                 );
             }
@@ -306,6 +377,17 @@ public class CsvFileParser {
                 return 0;
             }
             return Integer.valueOf(value);
+        }
+        log.error("type parsing error");
+        throw new RuntimeException("숫자 타입이 아닙니다.");
+    }
+
+    private BigDecimal getBigDecimal(String value) {
+        if (value != null) {
+            if (value.isBlank()) {
+                BigDecimal.valueOf(0.0);
+            }
+            return BigDecimal.valueOf(Double.parseDouble(value.replaceAll("[,\\s]", "")));
         }
         log.error("type parsing error");
         throw new RuntimeException("숫자 타입이 아닙니다.");
