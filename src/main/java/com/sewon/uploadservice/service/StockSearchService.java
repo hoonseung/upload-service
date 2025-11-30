@@ -21,6 +21,7 @@ import com.sewon.uploadservice.model.dto.mes.MESInboundAllBoxStockRecord;
 import com.sewon.uploadservice.model.dto.mes.MESInboundStockBoxRecord;
 import com.sewon.uploadservice.model.dto.mes.MESOutboundStockRecord;
 import com.sewon.uploadservice.model.dto.mes.MesBoxData;
+import com.sewon.uploadservice.model.dto.mes.UniqueFactoryItemCode;
 import com.sewon.uploadservice.model.entity.MesInboundStock;
 import com.sewon.uploadservice.model.entity.MesInboundStockBox;
 import com.sewon.uploadservice.repository.erp.ERPStockMapper;
@@ -135,8 +136,8 @@ public class StockSearchService {
             .stream().map(MesInboundStock::from).toList();
     }
 
-    public List<MesInboundStock> getBulkMESStockUpdateOnly(List<String> itemCode) {
-        return mesStockMapper.findInboundStockSummaryByTargetsBulkUpdateOnly(FACTORY, itemCode)
+    public List<MesInboundStock> getBulkMESStockUpdateOnly(List<UniqueFactoryItemCode> codes) {
+        return mesStockMapper.findInboundStockSummaryByTargetsBulkUpdateOnly(FACTORY, codes)
             .stream().map(MesInboundStock::from).toList();
     }
 

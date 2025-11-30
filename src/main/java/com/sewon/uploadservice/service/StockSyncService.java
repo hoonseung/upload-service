@@ -1,7 +1,7 @@
 package com.sewon.uploadservice.service;
 
+import com.sewon.uploadservice.model.dto.mes.UniqueFactoryItemCode;
 import com.sewon.uploadservice.model.entity.MesBox;
-import com.sewon.uploadservice.model.entity.MesInboundStock;
 import com.sewon.uploadservice.model.entity.MesOutboundStock;
 import com.sewon.uploadservice.repository.car.CarOrderMapper;
 import com.sewon.uploadservice.repository.mes.MESStockMapper;
@@ -35,7 +35,7 @@ public class StockSyncService {
             .stream().map(MesBox::getItemCode)
             .distinct()
             .toList();
-        List<List<String>> itemCodes = getLists(uniqueItemCode);
+        List<List<String>> itemCodes = getUniqueItemCodeLists(uniqueItemCode);
         // 청크 단위 만큼 수행
         List<CompletableFuture<Void>> mesFutures = new ArrayList<>();
         itemCodes.forEach(codes ->
@@ -57,7 +57,7 @@ public class StockSyncService {
         log.info("asyncMesWaitingBox update success time: {}", LocalDateTime.now());
     }
 
-    private static List<List<String>> getLists(List<String> uniqueItemCode) {
+    private List<List<String>> getUniqueItemCodeLists(List<String> uniqueItemCode) {
         List<List<String>> itemCodes = new ArrayList<>();
         int chunkSize = 500;
         for (int i = 0; i < uniqueItemCode.size(); i += chunkSize) {
@@ -72,29 +72,31 @@ public class StockSyncService {
     @Scheduled(cron = "0 */1 8-21 * * 1-6")
     @Transactional(transactionManager = "postgresqlTransactionManager")
     public void asyncMesWaitingStock() {
-        List<String> uniqueItemCode = carOrderMapper.findAllMesStock()
-            .stream().map(MesInboundStock::getItemCode)
+        List<UniqueFactoryItemCode> uniqueCode = carOrderMapper.findAllMesStock()
+            .stream().map(stock -> UniqueFactoryItemCode.of(stock.getFactory(), stock.getItemCode()))
             .distinct()
             .toList();
-        List<List<String>> itemCodes = getLists(uniqueItemCode);
+
+        List<List<UniqueFactoryItemCode>> factoryUniqueLists = getFactoryUniqueLists(uniqueCode);
         int chunkSize = 500;
-        for (int i = 0; i < uniqueItemCode.size(); i += chunkSize) {
-            itemCodes.add(uniqueItemCode.subList(i,
-                    Math.min(i + chunkSize, uniqueItemCode.size())
+        for (int i = 0; i < uniqueCode.size(); i += chunkSize) {
+            factoryUniqueLists.add(uniqueCode.subList(i,
+                    Math.min(i + chunkSize, uniqueCode.size())
                 )
             );
         }
 
         // 청크 단위 만큼 수행
         List<CompletableFuture<Void>> mesFutures = new ArrayList<>();
-        itemCodes.forEach(codes -> {
+        factoryUniqueLists.forEach(codes -> {
                 mesFutures.add(CompletableFuture.supplyAsync(
                         () -> stockSearchService.getBulkMESStockUpdateOnly(codes))
                     .thenAccept(carOrderMapper::bulkUpdateMesInboundStock)
                 );
 
                 mesFutures.add(CompletableFuture.supplyAsync(
-                        () -> stockSearchService.getBulkMESStockBox(codes))
+                        () -> stockSearchService.getBulkMESStockBox(codes.stream().map(
+                            UniqueFactoryItemCode::itemCode).toList()))
                     .thenAccept(carOrderMapper::bulkUpdateMesInboundStockBox)
                 );
             }
@@ -108,6 +110,18 @@ public class StockSyncService {
             )
             .join();
         log.info("asyncMesWaitingStock update success time: {}", LocalDateTime.now());
+    }
+
+    private List<List<UniqueFactoryItemCode>> getFactoryUniqueLists(List<UniqueFactoryItemCode> uniqueItemCode) {
+        List<List<UniqueFactoryItemCode>> itemCodes = new ArrayList<>();
+        int chunkSize = 500;
+        for (int i = 0; i < uniqueItemCode.size(); i += chunkSize) {
+            itemCodes.add(uniqueItemCode.subList(i,
+                    Math.min(i + chunkSize, uniqueItemCode.size())
+                )
+            );
+        }
+        return itemCodes;
     }
 
 
