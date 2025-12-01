@@ -33,6 +33,8 @@ public class OperationLastMonthlyPlanAggregation {
 
     private String responder;
 
+    private String confirm;
+
     private LocalDateTime createdDate;
 
     private LocalDateTime modifyDate;
@@ -43,6 +45,7 @@ public class OperationLastMonthlyPlanAggregation {
         return new OperationLastMonthlyPlanAggregation(null, stDate,
             lastMonth.withDayOfMonth(1),  lastMonth.withDayOfMonth(lastMonth.lengthOfMonth()),
             agg.carItem(), agg.partNo(), agg.doorType(), agg.region(), agg.dPlusTotal(), agg.responder(),
+            agg.confirm(),
             LocalDateTime.now(),
             LocalDateTime.now()
         );
@@ -54,6 +57,7 @@ public class OperationLastMonthlyPlanAggregation {
         return new OperationLastMonthlyPlanAggregation(null, stDate,
             startDate, endDate,
             agg.carItem(), agg.partNo(), agg.doorType(), agg.region(), agg.dPlusTotal(), agg.responder(),
+            agg.confirm(),
             LocalDateTime.now(),
             LocalDateTime.now()
         );

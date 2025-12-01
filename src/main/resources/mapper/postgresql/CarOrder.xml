@@ -161,13 +161,13 @@
   <insert id="bulkInsertOperationLastMonthlyPlanAgg" parameterType="java.util.List">
     <if test="operationPlanMAgg != null and operationPlanMAgg.size > 0">
       INSERT INTO order_ops_plan_last_mon_agg (
-      st_date, to_date, from_date, car_item, part_no, door_type, region, d_plus_total, responder,
+      st_date, to_date, from_date, car_item, part_no, door_type, region, d_plus_total, responder, confirm,
       created_at, modified_at
       ) VALUES
       <foreach collection="operationPlanMAgg" item="item" separator=",">
         (
         #{item.stDate}, #{item.toDate}, #{item.fromDate}, #{item.carItem}, #{item.partNo},
-        #{item.doorType},  #{item.region}, #{item.dPlusTotal}, #{item.responder},
+        #{item.doorType},  #{item.region}, #{item.dPlusTotal}, #{item.responder}, #{item.confirm},
         #{item.createdDate}, #{item.modifyDate}
         )
       </foreach>
@@ -177,13 +177,13 @@
   <insert id="bulkInsertOperationPastMonthlyPlanAgg" parameterType="java.util.List">
     <if test="operationPlanMAgg != null and operationPlanMAgg.size > 0">
       INSERT INTO order_ops_plan_past_mon_agg (
-      st_date, to_date, from_date, car_item, part_no, door_type, region, d_plus_total, responder,
+      st_date, to_date, from_date, car_item, part_no, door_type, region, d_plus_total, responder, confirm,
       created_at, modified_at
       ) VALUES
       <foreach collection="operationPlanMAgg" item="item" separator=",">
         (
         #{item.stDate}, #{item.toDate}, #{item.fromDate}, #{item.carItem}, #{item.partNo},
-        #{item.doorType},  #{item.region}, #{item.dPlusTotal}, #{item.responder},
+        #{item.doorType},  #{item.region}, #{item.dPlusTotal}, #{item.responder}, #{item.confirm},
         #{item.createdDate}, #{item.modifyDate}
         )
       </foreach>

@@ -24,7 +24,7 @@
   </select >
 
   <select id="findPartNoTotalLast4Weeks" resultType="CarPartNoTotalAgg">
-    WITH GroupData AS (SELECT MAX(등록일) as 최신등록일, PartNo, 품명, 대응지, SUM(합계) AS dplusTotal
+    WITH GroupData AS (SELECT MAX(등록일) as 최신등록일, PartNo, 품명, 대응지, MAX(합계) AS qty
                        FROM TB_PDM_ORDER_ForWeeks a
     <choose>
       <when test="startDate != null and endDate != null">
@@ -63,19 +63,24 @@
               b.OptionCode2                                            as doorType,
               b.OptionCode1                                            as region,
               a.대응지                                                    as responder,
-              a.dplusTotal
+              a.qty
             FROM GroupData a
                    join TB_QAD_품목option정의마스터찾아보기 b on a.PartNo = b.PartNo),
          RankedData AS (SELECT *, ROW_NUMBER() over (PARTITION BY PartNo ORDER BY 최신등록일 DESC) AS RN
-                        FROM orderSummary)
+                        FROM orderSummary),
+    LatestPartNo AS (
+    SELECT PartNo
+    FROM TB_PDM_ORDER_ForWeeks WHERE 등록일 = (SELECT MAX(등록일) FROM TB_PDM_ORDER_ForWeeks)
+    )
     SELECT
-           carItem,
-           PartNo,
-           doorType,
-           region,
-           responder,
-           dplusTotal
-    FROM RankedData
-    WHERE RN = 1;
+           a.carItem,
+           a.PartNo,
+           a.doorType,
+           a.region,
+           a.responder,
+           IIF(b.PartNo IS NOT NULL, 'c', '') AS confirm,
+           a.qty
+    FROM RankedData a LEFT JOIN LatestPartNo b ON a.PartNo = b.PartNo
+    WHERE a.RN = 1
   </select>
 </mapper>

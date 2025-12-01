@@ -33,6 +33,8 @@ public class OperationPastMonthlyPlanAggregation {
 
     private String responder;
 
+    private String confirm;
+
     private LocalDateTime createdDate;
 
     private LocalDateTime modifyDate;
@@ -43,6 +45,7 @@ public class OperationPastMonthlyPlanAggregation {
         return new OperationPastMonthlyPlanAggregation(null, stDate,
             pastMonth.withDayOfMonth(1),  stDate,
             agg.carItem(), agg.partNo(), agg.doorType(), agg.region(), agg.dPlusTotal(), agg.responder(),
+            agg.confirm(),
             LocalDateTime.now(),
             LocalDateTime.now()
         );
