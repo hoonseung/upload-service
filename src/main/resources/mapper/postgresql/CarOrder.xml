@@ -93,6 +93,7 @@
       #{item.factory}, #{item.itemCode}, #{item.quantity}, #{item.createdDate}, #{item.modifyDate}
       )
     </foreach>
+    ON CONFLICT (factory, item_code) DO NOTHING
   </insert>
 
   <insert id="bulkInsertInboundMesStockBox" parameterType="java.util.List">
@@ -417,9 +418,11 @@
   <!-- car_order 품번이 없는 품번 조회 -->
   <select id="getMissingItemCodeByMesStock" resultType="java.lang.String">
     SELECT c.item_code
-    FROM UNNEST(#{itemCodeArray, jdbcType=ARRAY}) AS C (item_code)
-           LEFT JOIN order_mes_stock m ON C.item_code = m.item_code
-    WHERE m.item_code IS NULL
+    FROM UNNEST(#{itemCodeArray, jdbcType=ARRAY}) AS c (item_code)
+           LEFT JOIN order_mes_stock m ON c.item_code = m.item_code
+           AND m.FACTORY IN ('B1', 'E1', 'F1')
+    GROUP BY c.item_code
+    HAVING COUNT(DISTINCT m.FACTORY) &lt; 3
   </select>
 
   <!-- car_order 품번이 없는 품번 조회 -->
