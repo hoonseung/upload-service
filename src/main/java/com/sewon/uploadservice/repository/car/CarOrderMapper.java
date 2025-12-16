@@ -6,6 +6,7 @@ import com.sewon.uploadservice.model.dto.car.sgn.CarPropsCombineSpec;
 import com.sewon.uploadservice.model.dto.car.sgn.CarPropsGroupSpecCombineSpec;
 import com.sewon.uploadservice.model.dto.car.sgn.MonthProductAgg;
 import com.sewon.uploadservice.model.entity.CarOrder;
+import com.sewon.uploadservice.model.entity.SapOrderPlan;
 import com.sewon.uploadservice.model.entity.OperationLastMonthlyPlanAggregation;
 import com.sewon.uploadservice.model.entity.MesBox;
 import com.sewon.uploadservice.model.entity.MesInboundStockBox;
@@ -59,6 +60,8 @@ public interface CarOrderMapper {
 
     // .service.partitioningPartNoByOrderPlanRawOperation 용도
     void bulkInsertOperationPlanProductionRate(@Param("operationPlanRate") List<OperationPlanProductionRate> operationPlanRate);
+
+    void bulkInsertSapOrderPlan(@Param("sapOrderPlans") List<SapOrderPlan> sapOrderPlans);
 
     void bulkUpdateMesBox(@Param("mesBoxes") List<MesBoxData> mesBoxes);
 

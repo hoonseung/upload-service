@@ -1,6 +1,7 @@
 package com.sewon.uploadservice.service;
 
 import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
+import com.sewon.uploadservice.model.entity.SapOrderPlan;
 import com.sewon.uploadservice.model.entity.PurchaseOutsourcingCost;
 import com.sewon.uploadservice.model.entity.CarOrder;
 import com.sewon.uploadservice.model.dto.erp.ERPStockRecord;
@@ -197,6 +198,20 @@ public class UploadService {
         }
         for (List<PurchaseOutsourcingCost> chunk : chunks) {
             carOrderMapper.bulkInsertPurchaseOutsourcingCost(chunk);
+        }
+    }
+
+    @Transactional(transactionManager = "postgresqlTransactionManager")
+    public void uploadSapOrderPlans(MultipartFile file){
+        List<SapOrderPlan> sapOrderPlans = csvFileParser.parsingSapOrderPlanFile(file);
+        List<List<SapOrderPlan>> chunks = new ArrayList<>();
+        int chunkSize = 500;
+        for (int i = 0; i < sapOrderPlans.size(); i += chunkSize) {
+            int endIdx = Math.min(i + chunkSize, sapOrderPlans.size());
+            chunks.add(sapOrderPlans.subList(i, endIdx));
+        }
+        for (List<SapOrderPlan> chunk : chunks) {
+            carOrderMapper.bulkInsertSapOrderPlan(chunk);
         }
     }
 

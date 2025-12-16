@@ -16,6 +16,7 @@ import com.sewon.uploadservice.model.dto.csv.DayPlusData;
 import com.sewon.uploadservice.model.dto.csv.OperationPlan;
 import com.sewon.uploadservice.model.dto.csv.OutboundTargetData;
 import com.sewon.uploadservice.model.dto.csv.SalesPriceUnit;
+import com.sewon.uploadservice.model.entity.SapOrderPlan;
 import com.sewon.uploadservice.model.entity.PurchaseOutsourcingCost;
 import com.sewon.uploadservice.model.entity.StdOutsourcingCost;
 import com.sewon.uploadservice.model.dto.csv.Ttime;
@@ -27,6 +28,7 @@ import java.io.UncheckedIOException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -265,6 +267,88 @@ public class CsvFileParser {
         }
     }
 
+    public List<SapOrderPlan> parsingSapOrderPlanFile(MultipartFile file) {
+        try (CSVParser parser = getParser(file, StandardCharsets.UTF_8)) {
+            List<SapOrderPlan> dataList = new ArrayList<>();
+            for (CSVRecord csvRecord : parser.getRecords()) {
+                dataList.add(
+                    SapOrderPlan.of(
+                        LocalDate.parse(csvRecord.get(0)),
+                        csvRecord.get(1),
+                        csvRecord.get(2),
+                        csvRecord.get(3),
+                        csvRecord.get(4),
+                        csvRecord.get(5),
+                        csvRecord.get(6),
+                        csvRecord.get(7),
+                        csvRecord.get(8),
+                        csvRecord.get(9),
+                        getIntegerByRecord(csvRecord.get(10)),
+                        getIntegerByRecord(csvRecord.get(11)),
+                        getIntegerByRecord(csvRecord.get(12)),
+                        getIntegerByRecord(csvRecord.get(13)),
+                        getIntegerByRecord(csvRecord.get(14)),
+                        getIntegerByRecord(csvRecord.get(15)),
+                        getIntegerByRecord(csvRecord.get(16)),
+                        getIntegerByRecord(csvRecord.get(17)),
+                        getIntegerByRecord(csvRecord.get(18)),
+                        getIntegerByRecord(csvRecord.get(19)),
+                        getIntegerByRecord(csvRecord.get(20)),
+                        getIntegerByRecord(csvRecord.get(21)),
+                        getIntegerByRecord(csvRecord.get(22)),
+                        getIntegerByRecord(csvRecord.get(23)),
+                        getIntegerByRecord(csvRecord.get(24)),
+                        getIntegerByRecord(csvRecord.get(25)),
+                        getIntegerByRecord(csvRecord.get(26)),
+                        getIntegerByRecord(csvRecord.get(27)),
+                        getIntegerByRecord(csvRecord.get(28)),
+                        getIntegerByRecord(csvRecord.get(29)),
+                        getIntegerByRecord(csvRecord.get(30)),
+                        getIntegerByRecord(csvRecord.get(31)),
+                        getIntegerByRecord(csvRecord.get(32)),
+                        getIntegerByRecord(csvRecord.get(33)),
+                        getIntegerByRecord(csvRecord.get(34)),
+                        getIntegerByRecord(csvRecord.get(35)),
+                        getIntegerByRecord(csvRecord.get(36)),
+                        getIntegerByRecord(csvRecord.get(37)),
+                        getIntegerByRecord(csvRecord.get(38)),
+                        getIntegerByRecord(csvRecord.get(39)),
+                        getIntegerByRecord(csvRecord.get(40)),
+                        getIntegerByRecord(csvRecord.get(41)),
+                        getIntegerByRecord(csvRecord.get(42)),
+                        getIntegerByRecord(csvRecord.get(43)),
+                        getIntegerByRecord(csvRecord.get(44)),
+                        getIntegerByRecord(csvRecord.get(45)),
+                        getIntegerByRecord(csvRecord.get(46)),
+                        getIntegerByRecord(csvRecord.get(47)),
+                        getIntegerByRecord(csvRecord.get(48)),
+                        getIntegerByRecord(csvRecord.get(49)),
+                        getIntegerByRecord(csvRecord.get(50)),
+                        getIntegerByRecord(csvRecord.get(51)),
+                        getIntegerByRecord(csvRecord.get(52)),
+                        getIntegerByRecord(csvRecord.get(53)),
+                        getIntegerByRecord(csvRecord.get(54)),
+                        getIntegerByRecord(csvRecord.get(55)),
+                        getIntegerByRecord(csvRecord.get(56)),
+                        getIntegerByRecord(csvRecord.get(57)),
+                        getIntegerByRecord(csvRecord.get(58)),
+                        getIntegerByRecord(csvRecord.get(59)),
+                        getIntegerByRecord(csvRecord.get(60)),
+                        getIntegerByRecord(csvRecord.get(61)),
+                        getIntegerByRecord(csvRecord.get(62)),
+                        getIntegerByRecord(csvRecord.get(63)),
+                        getIntegerByRecord(csvRecord.get(64)),
+                        getIntegerByRecord(csvRecord.get(65))
+                    )
+                );
+            }
+            return dataList;
+        } catch (IOException e) {
+            log.error("error message: {}", e.getMessage());
+            throw new UncheckedIOException(e);
+        }
+    }
+
     private String convertDoorType(String data){
         switch (data) {
             case "LHD" -> {
@@ -372,25 +456,35 @@ public class CsvFileParser {
     }
 
     private Integer getIntegerByRecord(String value) {
-        if (value != null) {
-            if (value.isBlank()) {
-                return 0;
-            }
-            return Integer.valueOf(value);
+        if (value == null || value.isBlank()) {
+            return 0;
         }
-        log.error("type parsing error");
-        throw new RuntimeException("숫자 타입이 아닙니다.");
+        String clean = value.replaceAll("[,\\s]", "");
+        try {
+            // 정수만으로 이루어진 경우 바로 변환
+            if (clean.matches("-?\\d+")) {
+                return Integer.valueOf(clean);
+            }
+            // 소수점을 포함한 숫자 -> BigDecimal로 파싱 후 정수로 변환
+            BigDecimal bd = new BigDecimal(clean);
+            // 소수점 버림(기본): intValue()
+            return bd.intValue();
+        } catch (NumberFormatException | ArithmeticException e) {
+            log.error("type parsing error value: {}", value);
+            throw new RuntimeException("숫자 타입이 아닙니다.", e);
+        }
     }
 
     private BigDecimal getBigDecimal(String value) {
-        if (value != null) {
-            if (value.isBlank()) {
-                BigDecimal.valueOf(0.0);
-            }
-            return BigDecimal.valueOf(Double.parseDouble(value.replaceAll("[,\\s]", "")));
+        if (value == null || value.isBlank()) {
+            return BigDecimal.ZERO;
         }
-        log.error("type parsing error");
-        throw new RuntimeException("숫자 타입이 아닙니다.");
+        try {
+            return new BigDecimal(value.replaceAll("[,\\s]", ""));
+        } catch (NumberFormatException e) {
+            log.error("type parsing error value: {}", value);
+            throw new RuntimeException("숫자 타입이 아닙니다.", e);
+        }
     }
 
     private DayPlusData addDPlusDays(int start, CSVRecord csvRecord) {

@@ -131,4 +131,15 @@ public class UploadController {
         uploadService.purchaseOutsourcingCostUpload(file);
         return ResponseEntity.ok().body("success");
     }
+
+    @PostMapping("/v1/upload/operation/plan/sap")
+    public ResponseEntity<String> uploadSapOrderPlans(
+        @RequestParam("file") MultipartFile file
+    ){
+        if (fileEmptyCheck(file) || csvInValidByPart(file, "고객서열")){
+            return ResponseEntity.badRequest().body("fail");
+        }
+        uploadService.uploadSapOrderPlans(file);
+        return ResponseEntity.ok().body("success");
+    }
 }

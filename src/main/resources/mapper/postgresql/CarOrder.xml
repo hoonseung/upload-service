@@ -274,6 +274,35 @@
     </if>
   </insert>
 
+  <insert id="bulkInsertSapOrderPlan" parameterType="java.util.List">
+    <if test="sapOrderPlans != null and sapOrderPlans.size > 0">
+      INSERT INTO pdm_sap_order (
+      접수일자, 품목유형, alc, 운전석방향, 지역, air_bag, 품목명, 품목번호,
+      공장, 품목개정, 회로갯수, 실적계, trim, 라인재고, 유라, oem,
+      사내재고, 검사대기, 입고대기, 입하대기, 조립, 서브, set_완료, set_작업중,
+      total, weihai, rizhao, dezhou, vina,
+      d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10,
+      d11, d12, d13, d14, d15, d16, d17, d18, d19, d20,
+      d21, d22, d23, d24, d25, d26, d27, d28, d29, d30,
+      rem, h_total, m, 차월, mitu, 장기성재고,
+      created_at, modified_at
+      ) VALUES
+      <foreach collection="sapOrderPlans" item="item" separator=",">
+        (
+        #{item.uploadDate}, #{item.carProps}, #{item.alc}, #{item.doorType}, #{item.region}, #{item.airBag}, #{item.groupProps}, #{item.partNo},
+        #{item.factory}, #{item.version}, #{item.circuitCount}, #{item.result}, #{item.trim}, #{item.line}, #{item.yra}, #{item.oem},
+        #{item.inhouse}, #{item.inspection}, #{item.ct}, #{item.ct2}, #{item.assembly}, #{item.sub}, #{item.setComplete}, #{item.setProcessing},
+        #{item.total}, #{item.weihai}, #{item.rizhao}, #{item.dezhou}, #{item.vina},
+        #{item.day0}, #{item.day1}, #{item.day2}, #{item.day3}, #{item.day4}, #{item.day5}, #{item.day6}, #{item.day7}, #{item.day8}, #{item.day9}, #{item.day10},
+        #{item.day11}, #{item.day12}, #{item.day13}, #{item.day14}, #{item.day15}, #{item.day16}, #{item.day17}, #{item.day18}, #{item.day19}, #{item.day20},
+        #{item.day21}, #{item.day22}, #{item.day23}, #{item.day24}, #{item.day25}, #{item.day26}, #{item.day27}, #{item.day28}, #{item.day29}, #{item.day30},
+        #{item.rem}, #{item.hTotal}, #{item.m}, #{item.nextMonth}, #{item.mitu}, #{item.longStock},
+        #{item.createdDate}, #{item.modifyDate}
+        )
+      </foreach>
+    </if>
+  </insert>
+
   <update   id="bulkUpdateMesBox"  parameterType="java.util.List">
     WITH temp_product_list AS (
     SELECT *
