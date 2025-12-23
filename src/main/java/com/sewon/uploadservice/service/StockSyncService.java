@@ -130,7 +130,7 @@ public class StockSyncService {
     @Scheduled(cron = "0 */5 9-21 * * 1-6")
     @Transactional(transactionManager = "postgresqlTransactionManager")
     public void asyncMesOutboundStock() {
-        List<MesOutboundStock> stocks = mesStockMapper.findOutboundStockTotalByDate("ZA",
+        List<MesOutboundStock> stocks = mesStockMapper.findOutboundStockTotalByDate(
                 LocalDate.now(), LocalDate.now())
             .stream()
             .map(MesOutboundStock::from)

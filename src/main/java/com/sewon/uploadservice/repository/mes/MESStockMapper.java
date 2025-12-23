@@ -23,23 +23,18 @@ public interface MESStockMapper {
             @Param("itemCodeList") List<String> itemCodeList);
 
     List<MESInboundAllBoxStockRecord> findInboundAllBoxSummaryByTargetsBulk
-        (@Param("factory") String factory,
-            @Param("itemCodeList") List<String> itemCodeList);
+        (@Param("itemCodeList") List<String> itemCodeList);
 
     List<MESInboundStockRecord> findInboundStockSummaryByTargetsBulk
-        (@Param("factory") String factory,
-            @Param("itemCodeList") List<String> itemCodeList);
+        (@Param("itemCodeList") List<String> itemCodeList);
 
     List<MESInboundStockRecord> findInboundStockSummaryByTargetsBulkUpdateOnly
-        (@Param("factory") String factory,
-            @Param("codes") List<UniqueFactoryItemCode> codes);
+        (@Param("codes") List<UniqueFactoryItemCode> codes);
 
     List<MESInboundStockBoxRecord> findInboundStockBoxSummaryByTargetsBulk
-        (@Param("factory") String factory,
-            @Param("itemCodeList") List<String> itemCodeList);
+        (@Param("itemCodeList") List<String> itemCodeList);
 
     List<MESOutboundStockRecord> findOutboundStockTotalByDate(
-        @Param("factory") String factory,
         @Param("from") LocalDate from,
         @Param("to") LocalDate to);
 

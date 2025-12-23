@@ -74,12 +74,12 @@ public class StockSearchService {
 
     public Map<String, MesBoxData> getBulkMESAllBox(List<String> itemCodes) {
         List<MESInboundAllBoxStockRecord> inboundAllStockSummaryByTargetsBulk = mesStockMapper.findInboundAllBoxSummaryByTargetsBulk(
-            FACTORY, itemCodes);
+            itemCodes);
         return getMesBoxDataMap(inboundAllStockSummaryByTargetsBulk);
     }
 
     public List<MESOutboundStockRecord> getMESOutboundStock(LocalDate from, LocalDate to){
-        return mesStockMapper.findOutboundStockTotalByDate(FACTORY, from, to);
+        return mesStockMapper.findOutboundStockTotalByDate(from, to);
     }
 
     public Map<String, MesBoxData> getMesBoxDataMap(List<MESInboundAllBoxStockRecord> stockRecords) {
@@ -132,18 +132,18 @@ public class StockSearchService {
     }
 
     public List<MesInboundStock> getBulkMESStock(List<String> itemCode) {
-        return mesStockMapper.findInboundStockSummaryByTargetsBulk(FACTORY, itemCode)
+        return mesStockMapper.findInboundStockSummaryByTargetsBulk(itemCode)
             .stream().map(MesInboundStock::from).toList();
     }
 
     public List<MesInboundStock> getBulkMESStockUpdateOnly(List<UniqueFactoryItemCode> codes) {
-        return mesStockMapper.findInboundStockSummaryByTargetsBulkUpdateOnly(FACTORY, codes)
+        return mesStockMapper.findInboundStockSummaryByTargetsBulkUpdateOnly(codes)
             .stream().map(MesInboundStock::from).toList();
     }
 
 
     public List<MesInboundStockBox> getBulkMESStockBox(List<String> itemCode){
-        return mesStockMapper.findInboundStockBoxSummaryByTargetsBulk(FACTORY, itemCode)
+        return mesStockMapper.findInboundStockBoxSummaryByTargetsBulk(itemCode)
             .stream()
             .collect(Collectors.groupingBy(MESInboundStockBoxRecord::itemCode, Collectors.collectingAndThen(
                 Collectors.toList(), this::getMesInboundStockBox))
