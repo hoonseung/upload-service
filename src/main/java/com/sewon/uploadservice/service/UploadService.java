@@ -56,14 +56,16 @@ public class UploadService {
     public void planUpload(List<MultipartFile> gFiles, List<MultipartFile> dFiles,
         LocalDate uploadingDate) {
         List<CombineData> dataList = combineCSV(gFiles, dFiles, LocalDate.now());
+        String factory = getFactory(gFiles);
 
+        // 완제품 공장 고정
         List<CarOrder> carOrders = dataList.stream()
             .map(data -> {
                 CsvData csv = data.getCsvData();
                 DayPlusData dayplusData = csv.getDayplusData();
                 ErpStockData erp = data.getErpStockData();
 
-                return getCarOrder(csv, erp, dayplusData, uploadingDate);
+                return getCarOrder(csv, erp, dayplusData, uploadingDate, factory);
 
             }).toList();
 
@@ -111,6 +113,19 @@ public class UploadService {
                 carOrderMapper.bulkInsertInboundMesStockBox(mesStockBoxes);
             }
         }
+    }
+
+    private String getFactory(List<MultipartFile> gFiles) {
+        // 경산은 G파일만 업로드
+        if (gFiles == null || gFiles.isEmpty()) return "평택";
+        for (MultipartFile file : gFiles){
+            if (file != null && Objects.requireNonNull(file.getOriginalFilename()).contains("2500")){
+                return "경산";
+            }else {
+                return "평택";
+            }
+        }
+        return "평택";
     }
 
     @Transactional(transactionManager = "postgresqlTransactionManager")
@@ -288,7 +303,7 @@ public class UploadService {
         for (MultipartFile file : files) {
             String name = file.getOriginalFilename();
             if (Objects.nonNull(name)) {
-                if (name.contains("g-2000")) {
+                if (name.contains("g-2000") || name.contains("g-2500")) {
                     csvDataList.addAll(csvFileParser.g2000Parsing(file));
                 } else if (name.contains("g-3000")) {
                     csvDataList.addAll(csvFileParser.g3000Parsing(file));
@@ -437,7 +452,7 @@ public class UploadService {
     }
 
     private CarOrder getCarOrder(CsvData csv, ErpStockData erp, DayPlusData dayplusData,
-        LocalDate uploadDate) {
+        LocalDate uploadDate, String factory) {
         return CarOrder.builder()
             .category(csv.getCategory())
             .alc(csv.getAlc())
@@ -477,6 +492,7 @@ public class UploadService {
             .uploadDate(uploadDate)
             .createdDate(LocalDateTime.now())
             .modifyDate(LocalDateTime.now())
+            .factory(factory)
             .build();
     }
 

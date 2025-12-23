@@ -54,7 +54,7 @@
     d_plus9, d_plus10, d_plus11, d_plus12, d_plus13, d_plus14, d_plus15, d_plus16,
     d_plus17, d_plus18, d_plus19, d_plus20, rem, ct_location, upload_date,
 
-      created_at, modified_at
+      created_at, modified_at, factory
     ) VALUES
     <foreach collection="carOrders" item="item" separator=",">
       (
@@ -65,7 +65,7 @@
       #{item.dPlus9}, #{item.dPlus10}, #{item.dPlus11}, #{item.dPlus12}, #{item.dPlus13}, #{item.dPlus14}, #{item.dPlus15}, #{item.dPlus16},
       #{item.dPlus17}, #{item.dPlus18}, #{item.dPlus19}, #{item.dPlus20}, #{item.rem}, #{item.ctLocations}, #{item.uploadDate},
 
-      #{item.createdDate}, #{item.modifyDate}
+      #{item.createdDate}, #{item.modifyDate}, #{item.factory}
       )
     </foreach>
   </insert>

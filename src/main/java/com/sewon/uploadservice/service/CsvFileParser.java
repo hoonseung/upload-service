@@ -47,7 +47,8 @@ public class CsvFileParser {
 
 
     public List<CsvData> g2000Parsing(MultipartFile file) {
-        if (isEnableParse(file.getOriginalFilename(), "g-2000")) {
+        if (isEnableParse(file.getOriginalFilename(), "g-2000")
+        || isEnableParse(file.getOriginalFilename(), "g-2500")) {
             return getGCsvDataList(file, Charset.forName("EUC-KR"));
         }
         return List.of();

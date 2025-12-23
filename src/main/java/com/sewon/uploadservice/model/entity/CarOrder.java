@@ -115,6 +115,8 @@ public class CarOrder {
 
     private LocalDateTime modifyDate;
 
+    private String factory;
+
 
     public static String parseCtLocation(Set<ERPLocation> locations) {
         StringBuilder sb = new StringBuilder();

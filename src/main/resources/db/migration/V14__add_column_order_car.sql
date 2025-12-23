@@ -1,0 +1,2 @@
+ALTER TABLE order_car
+ADD COLUMN factory VARCHAR(10)
