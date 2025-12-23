@@ -76,7 +76,12 @@
            a.carItem,
            a.PartNo,
            a.doorType,
-           a.region,
+           CASE
+               WHEN a.region = 'R01' THEN 'R01'
+               WHEN a.region IN ('R02', 'R03', 'R04', 'R05', 'R08', 'R09', 'R10', 'R11', 'R12') THEN 'R03'
+               WHEN a.region IN ('R06', 'R07') THEN 'R07'
+               ELSE a.region
+               END AS region,
            a.responder,
            IIF(b.PartNo IS NOT NULL, 'c', '') AS confirm,
            a.qty
