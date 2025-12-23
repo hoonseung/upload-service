@@ -9,6 +9,7 @@ import com.sewon.uploadservice.model.dto.car.spn.CarItemMonthAgg;
 import com.sewon.uploadservice.model.dto.car.spn.CarPartNoTotalAgg;
 import com.sewon.uploadservice.model.dto.car.spn.CarProductionRate;
 import com.sewon.uploadservice.model.entity.OperationLastMonthlyPlanAggregation;
+import com.sewon.uploadservice.model.entity.OperationPastMonthlyPlanAggregation;
 import com.sewon.uploadservice.model.entity.OperationPlanProductionRate;
 import com.sewon.uploadservice.model.entity.OperationPlanRawAggregation;
 import com.sewon.uploadservice.repository.car.CarOrderMapper;
@@ -60,25 +61,27 @@ public class OrderOperationService {
             processUnNormalSpecs(stDate, unNormalSpecs);
         }
 
-        List<OperationLastMonthlyPlanAggregation> aggregations = erpItemMapper.findPartNoTotalLast4Weeks(
-                stDate, null, null, null)
-            .stream()
-            .map(agg -> OperationLastMonthlyPlanAggregation.of(stDate, agg))
-            .toList();
-        carOrderMapper.bulkInsertOperationLastMonthlyPlanAgg(
-            aggregations
-        );
+        List<OperationLastMonthlyPlanAggregation> lastAggregations = getOperationLastMonthlyPlanAggregations(
+            stDate);
+
+        List<OperationPastMonthlyPlanAggregation> pastAggregations = getOperationPastMonthlyPlanAggregations(
+            stDate);
+
+        carOrderMapper.bulkInsertOperationLastMonthlyPlanAgg(lastAggregations);
+
+        carOrderMapper.deleteOpsPastMonthlyPlanAgg();
+        carOrderMapper.bulkInsertOperationPastMonthlyPlanAgg(pastAggregations);
     }
 
     @Transactional(transactionManager = "postgresqlTransactionManager")
     public void updateOperationPlanLastMonthAgg(){
         LocalDate recentlyStDate = carOrderMapper.findRecentlyStDate();
         LocalDate today = LocalDate.now();
-        carOrderMapper.deleteOpsMonthlyPlanAgg();
+        carOrderMapper.deleteOpsLastMonthlyPlanAgg();
 
         List<OperationLastMonthlyPlanAggregation> aggregations = erpItemMapper.findPartNoTotalLast4Weeks(
             null, null, null,
-                today)
+                today, false)
             .stream()
             .map(agg -> OperationLastMonthlyPlanAggregation.of(recentlyStDate, agg,
                 today.minusMonths(1), today))
@@ -91,11 +94,11 @@ public class OrderOperationService {
     @Transactional(transactionManager = "postgresqlTransactionManager")
     public void updateOperationPlanLastMonthAggByPeriod(LocalDate startDate, LocalDate endDate){
         LocalDate recentlyStDate = carOrderMapper.findRecentlyStDate();
-        carOrderMapper.deleteOpsMonthlyPlanAgg();
+        carOrderMapper.deleteOpsLastMonthlyPlanAgg();
 
         List<OperationLastMonthlyPlanAggregation> aggregations = erpItemMapper.findPartNoTotalLast4Weeks(
             null,
-                startDate, endDate, null)
+                startDate, endDate, null, false)
             .stream()
             .map(agg -> OperationLastMonthlyPlanAggregation.of(recentlyStDate, agg,
                 startDate, endDate))
@@ -118,7 +121,7 @@ public class OrderOperationService {
 
         // 한달 전 4주 서열에서 품번 합계 추출
         List<CarPartNoTotalAgg> partNoTotalLast4Weeks = erpItemMapper.findPartNoTotalLast4Weeks(stDate,
-            null, null, null);
+            null, null, null, false);
 
         if (monthlyAggByCarItem == null || monthlyAggByCarItem.isEmpty()) {
             return;
@@ -327,7 +330,7 @@ public class OrderOperationService {
 
         // 그룹 + etc 키 / 그룹 밸류 설정
         Map<String, String> findGroupProps = combineSpecs.stream().collect(Collectors.toMap(
-            item -> item.carProps() + item.groupProps() + item.etc(),
+            item -> item.seqNo() + item.carProps() + item.groupProps() + item.etc(),
             CarPropsGroupSpecCombineSpec::groupProps,
             (existing, replacement) -> existing // 중복 키가 있을 경우 기존 값 유지
         ));
@@ -336,7 +339,7 @@ public class OrderOperationService {
         List<OperationPlanRawAggregation> result = new ArrayList<>();
         for (CarPropsGroupSpecCombineSpec spec : combineSpecs){
             String key1 = spec.carProps() + spec.etc();
-            String key2 = spec.carProps() + spec.groupProps() + spec.etc();
+            String key2 = spec.seqNo() + spec.carProps() + spec.groupProps() + spec.etc();
             MonthProductAgg monthProductAgg = collectMap.get(key1);
             String groupProps = findGroupProps.get(key2);
             if (Objects.isNull(monthProductAgg) || (groupProps.isBlank()) ){
@@ -350,6 +353,23 @@ public class OrderOperationService {
         carOrderMapper.bulkInsertOperationPlanAgg(result.stream().distinct().toList());
     }
 
+    private List<OperationLastMonthlyPlanAggregation> getOperationLastMonthlyPlanAggregations(
+        LocalDate stDate) {
+        return erpItemMapper.findPartNoTotalLast4Weeks(
+                stDate, null, null, null, false)
+            .stream()
+            .map(agg -> OperationLastMonthlyPlanAggregation.of(stDate, agg))
+            .toList();
+    }
+
+    private List<OperationPastMonthlyPlanAggregation> getOperationPastMonthlyPlanAggregations(
+        LocalDate stDate) {
+        return erpItemMapper.findPartNoTotalLast4Weeks(
+                stDate, null, null, null, true)
+            .stream()
+            .map(agg -> OperationPastMonthlyPlanAggregation.of(stDate, agg))
+            .toList();
+    }
 
     private String getGroupProps(String shouldParsing) {
         if (shouldParsing == null) {

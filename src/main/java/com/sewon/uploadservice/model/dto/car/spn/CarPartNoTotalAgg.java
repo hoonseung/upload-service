@@ -6,6 +6,7 @@ public record CarPartNoTotalAgg(
     String doorType,
     String region,
     String responder,
+    String confirm,
     Integer dPlusTotal
 ) {
 

@@ -54,7 +54,7 @@
     d_plus9, d_plus10, d_plus11, d_plus12, d_plus13, d_plus14, d_plus15, d_plus16,
     d_plus17, d_plus18, d_plus19, d_plus20, rem, ct_location, upload_date,
 
-      created_at, modified_at
+      created_at, modified_at, factory
     ) VALUES
     <foreach collection="carOrders" item="item" separator=",">
       (
@@ -65,7 +65,7 @@
       #{item.dPlus9}, #{item.dPlus10}, #{item.dPlus11}, #{item.dPlus12}, #{item.dPlus13}, #{item.dPlus14}, #{item.dPlus15}, #{item.dPlus16},
       #{item.dPlus17}, #{item.dPlus18}, #{item.dPlus19}, #{item.dPlus20}, #{item.rem}, #{item.ctLocations}, #{item.uploadDate},
 
-      #{item.createdDate}, #{item.modifyDate}
+      #{item.createdDate}, #{item.modifyDate}, #{item.factory}
       )
     </foreach>
   </insert>
@@ -93,6 +93,7 @@
       #{item.factory}, #{item.itemCode}, #{item.quantity}, #{item.createdDate}, #{item.modifyDate}
       )
     </foreach>
+    ON CONFLICT (factory, item_code) DO NOTHING
   </insert>
 
   <insert id="bulkInsertInboundMesStockBox" parameterType="java.util.List">
@@ -161,14 +162,91 @@
   <insert id="bulkInsertOperationLastMonthlyPlanAgg" parameterType="java.util.List">
     <if test="operationPlanMAgg != null and operationPlanMAgg.size > 0">
       INSERT INTO order_ops_plan_last_mon_agg (
-      st_date, to_date, from_date, car_item, part_no, door_type, region, d_plus_total, responder,
+      st_date, to_date, from_date, car_item, part_no, door_type, region, d_plus_total, responder, confirm,
       created_at, modified_at
       ) VALUES
       <foreach collection="operationPlanMAgg" item="item" separator=",">
         (
         #{item.stDate}, #{item.toDate}, #{item.fromDate}, #{item.carItem}, #{item.partNo},
-        #{item.doorType},  #{item.region}, #{item.dPlusTotal}, #{item.responder},
+        #{item.doorType},  #{item.region}, #{item.dPlusTotal}, #{item.responder}, #{item.confirm},
         #{item.createdDate}, #{item.modifyDate}
+        )
+      </foreach>
+    </if>
+  </insert>
+
+  <insert id="bulkInsertOperationPastMonthlyPlanAgg" parameterType="java.util.List">
+    <if test="operationPlanMAgg != null and operationPlanMAgg.size > 0">
+      INSERT INTO order_ops_plan_past_mon_agg (
+      st_date, to_date, from_date, car_item, part_no, door_type, region, d_plus_total, responder, confirm,
+      created_at, modified_at
+      ) VALUES
+      <foreach collection="operationPlanMAgg" item="item" separator=",">
+        (
+        #{item.stDate}, #{item.toDate}, #{item.fromDate}, #{item.carItem}, #{item.partNo},
+        #{item.doorType},  #{item.region}, #{item.dPlusTotal}, #{item.responder}, #{item.confirm},
+        #{item.createdDate}, #{item.modifyDate}
+        )
+      </foreach>
+    </if>
+  </insert>
+
+  <insert id="bulkInsertSalesPrice" parameterType="java.util.List">
+    <if test="salesPrice != null and salesPrice.size > 0">
+      INSERT INTO common_sales_price_unit (
+      part_no, supplier, part_name, car_item, product_code, explain, car_props, group_props, unit,
+      price_unit, price, to_date, from_date, created_at
+      ) VALUES
+      <foreach collection="salesPrice" item="item" separator=",">
+        (
+        #{item.partNo}, #{item.supplier}, #{item.partName}, #{item.carItem}, #{item.productCode},
+        #{item.explain},  #{item.carProps}, #{item.groupProps}, #{item.unit},
+        #{item.priceUnit},  #{item.price}, #{item.toDate}, #{item.fromDate},
+        #{item.createdDate}
+        )
+      </foreach>
+    </if>
+  </insert>
+
+  <insert id="bulkInsertStdOutsourcingCost" parameterType="java.util.List">
+    <if test="stdCost != null and stdCost.size > 0">
+      INSERT INTO common_std_outsourcing_cost (
+      part_no, price_set, product_code, mat_cost, labor_cost, changing_cost, fixed_cost, out_sourcing_cost, total_cost,
+      mat_cost_down, labor_cost_down, changing_cost_down, fixed_cost_down, out_sourcing_cost_down,
+      cost_modify_date, groups, groups2, car_props_type, car_props, freezing, created_at
+      ) VALUES
+      <foreach collection="stdCost" item="item" separator=",">
+        (
+        #{item.partNo}, #{item.priceSet}, #{item.productCode},
+         #{item.matCost}, #{item.laborCost},
+         #{item.changingCost}, #{item.fixedCost}, #{item.outSourcingCost}, #{item.totalCost},
+         #{item.matCostDown}, #{item.laborCostDown},
+         #{item.changingCostDown}, #{item.fixedCostDown}, #{item.outSourcingCostDown},
+        #{item.costModifyDate},  #{item.groups}, #{item.groups2}, #{item.carPropsType},
+        #{item.carProps},  #{item.freezing},
+        #{item.createdDate}
+        )
+      </foreach>
+    </if>
+  </insert>
+
+  <insert id="bulkInsertPurchaseOutsourcingCost" parameterType="java.util.List">
+    <if test="purchaseCost != null and purchaseCost.size > 0">
+      INSERT INTO common_outsourcing_cost (
+      price_list, name, price_unit, product_code, part_no, groups, groups2, unit, start_date,
+      end_date, etc, explanation, out_sourcing_cost, modify_date, factory, car_props_type,
+      std_unit, created_at
+      ) VALUES
+      <foreach collection="purchaseCost" item="item" separator=",">
+        (
+        #{item.priceList}, #{item.name}, #{item.priceUnit},
+        #{item.productCode}, #{item.partNo},
+        #{item.groups}, #{item.groups2}, #{item.unit},
+        #{item.startDate}, #{item.endDate},
+        #{item.etc}, #{item.explain},
+        #{item.outSourcingCost}, #{item.modifyDate}, #{item.factory},
+        #{item.carPropsType},  #{item.stdUnit},
+        #{item.createdDate}
         )
       </foreach>
     </if>
@@ -190,6 +268,35 @@
         #{item.rateByMonth3},
         #{item.rateByMonth4},
         #{item.rateByMonth5},
+        #{item.createdDate}, #{item.modifyDate}
+        )
+      </foreach>
+    </if>
+  </insert>
+
+  <insert id="bulkInsertSapOrderPlan" parameterType="java.util.List">
+    <if test="sapOrderPlans != null and sapOrderPlans.size > 0">
+      INSERT INTO pdm_sap_order (
+      접수일자, 품목유형, alc, 운전석방향, 지역, air_bag, 품목명, 품목번호,
+      공장, 품목개정, 회로갯수, 실적계, trim, 라인재고, 유라, oem,
+      사내재고, 검사대기, 입고대기, 입하대기, 조립, 서브, set_완료, set_작업중,
+      total, weihai, rizhao, dezhou, vina,
+      d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10,
+      d11, d12, d13, d14, d15, d16, d17, d18, d19, d20,
+      d21, d22, d23, d24, d25, d26, d27, d28, d29, d30,
+      rem, h_total, m, 차월, mitu, 장기성재고,
+      created_at, modified_at
+      ) VALUES
+      <foreach collection="sapOrderPlans" item="item" separator=",">
+        (
+        #{item.uploadDate}, #{item.carProps}, #{item.alc}, #{item.doorType}, #{item.region}, #{item.airBag}, #{item.groupProps}, #{item.partNo},
+        #{item.factory}, #{item.version}, #{item.circuitCount}, #{item.result}, #{item.trim}, #{item.line}, #{item.yra}, #{item.oem},
+        #{item.inhouse}, #{item.inspection}, #{item.ct}, #{item.ct2}, #{item.assembly}, #{item.sub}, #{item.setComplete}, #{item.setProcessing},
+        #{item.total}, #{item.weihai}, #{item.rizhao}, #{item.dezhou}, #{item.vina},
+        #{item.day0}, #{item.day1}, #{item.day2}, #{item.day3}, #{item.day4}, #{item.day5}, #{item.day6}, #{item.day7}, #{item.day8}, #{item.day9}, #{item.day10},
+        #{item.day11}, #{item.day12}, #{item.day13}, #{item.day14}, #{item.day15}, #{item.day16}, #{item.day17}, #{item.day18}, #{item.day19}, #{item.day20},
+        #{item.day21}, #{item.day22}, #{item.day23}, #{item.day24}, #{item.day25}, #{item.day26}, #{item.day27}, #{item.day28}, #{item.day29}, #{item.day30},
+        #{item.rem}, #{item.hTotal}, #{item.m}, #{item.nextMonth}, #{item.mitu}, #{item.longStock},
         #{item.createdDate}, #{item.modifyDate}
         )
       </foreach>
@@ -340,9 +447,11 @@
   <!-- car_order 품번이 없는 품번 조회 -->
   <select id="getMissingItemCodeByMesStock" resultType="java.lang.String">
     SELECT c.item_code
-    FROM UNNEST(#{itemCodeArray, jdbcType=ARRAY}) AS C (item_code)
-           LEFT JOIN order_mes_stock m ON C.item_code = m.item_code
-    WHERE m.item_code IS NULL
+    FROM UNNEST(#{itemCodeArray, jdbcType=ARRAY}) AS c (item_code)
+           LEFT JOIN order_mes_stock m ON c.item_code = m.item_code
+           AND m.FACTORY IN ('B1', 'E1', 'F1')
+    GROUP BY c.item_code
+    HAVING COUNT(DISTINCT m.FACTORY) &lt; 3
   </select>
 
   <!-- car_order 품번이 없는 품번 조회 -->
@@ -487,8 +596,29 @@
     WHERE st_date = #{date}
   </delete>
 
-  <delete id="deleteOpsMonthlyPlanAgg">
+  <delete id="deleteOpsLastMonthlyPlanAgg">
     DELETE
     FROM order_ops_plan_last_mon_agg
   </delete>
+
+  <delete id="deleteOpsPastMonthlyPlanAgg">
+    DELETE
+    FROM order_ops_plan_past_mon_agg
+  </delete>
+
+  <delete id="deleteSalesPrice">
+  DELETE
+  FROM common_sales_price_unit
+</delete>
+
+  <delete id="deleteStdOutsourcingCost">
+    DELETE
+    FROM common_std_outsourcing_cost
+  </delete>
+
+  <delete id="deletePurchaseOutsourcingCost">
+    DELETE
+    FROM common_outsourcing_cost
+  </delete>
+
 </mapper>

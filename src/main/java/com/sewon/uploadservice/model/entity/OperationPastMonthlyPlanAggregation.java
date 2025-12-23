@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class OperationLastMonthlyPlanAggregation {
+public class OperationPastMonthlyPlanAggregation {
 
     private Long id;
 
@@ -40,22 +40,10 @@ public class OperationLastMonthlyPlanAggregation {
     private LocalDateTime modifyDate;
 
 
-    public static OperationLastMonthlyPlanAggregation of(LocalDate stDate, CarPartNoTotalAgg agg) {
-        LocalDate lastMonth = stDate.minusMonths(1);
-        return new OperationLastMonthlyPlanAggregation(null, stDate,
-            lastMonth.withDayOfMonth(1),  lastMonth.withDayOfMonth(lastMonth.lengthOfMonth()),
-            agg.carItem(), agg.partNo(), agg.doorType(), agg.region(), agg.dPlusTotal(), agg.responder(),
-            agg.confirm(),
-            LocalDateTime.now(),
-            LocalDateTime.now()
-        );
-    }
-
-    public static OperationLastMonthlyPlanAggregation of(LocalDate stDate, CarPartNoTotalAgg agg,
-        LocalDate startDate, LocalDate endDate
-        ) {
-        return new OperationLastMonthlyPlanAggregation(null, stDate,
-            startDate, endDate,
+    public static OperationPastMonthlyPlanAggregation of(LocalDate stDate, CarPartNoTotalAgg agg) {
+        LocalDate pastMonth = stDate.minusMonths(5);
+        return new OperationPastMonthlyPlanAggregation(null, stDate,
+            pastMonth.withDayOfMonth(1),  stDate,
             agg.carItem(), agg.partNo(), agg.doorType(), agg.region(), agg.dPlusTotal(), agg.responder(),
             agg.confirm(),
             LocalDateTime.now(),

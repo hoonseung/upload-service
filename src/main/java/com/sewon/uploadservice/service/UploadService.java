@@ -1,6 +1,8 @@
 package com.sewon.uploadservice.service;
 
 import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
+import com.sewon.uploadservice.model.entity.SapOrderPlan;
+import com.sewon.uploadservice.model.entity.PurchaseOutsourcingCost;
 import com.sewon.uploadservice.model.entity.CarOrder;
 import com.sewon.uploadservice.model.dto.erp.ERPStockRecord;
 import com.sewon.uploadservice.model.entity.MesBox;
@@ -15,6 +17,8 @@ import com.sewon.uploadservice.model.dto.csv.Ttime;
 import com.sewon.uploadservice.model.entity.MesInboundStockBox;
 import com.sewon.uploadservice.model.entity.OperationPlanRaw;
 import com.sewon.uploadservice.model.entity.OutboundTarget;
+import com.sewon.uploadservice.model.entity.SalesPrice;
+import com.sewon.uploadservice.model.entity.StdOutsourcingCost;
 import com.sewon.uploadservice.repository.car.CarOrderMapper;
 import com.sewon.uploadservice.model.dto.erp.TargetLocationDto;
 import java.time.LocalDate;
@@ -52,14 +56,16 @@ public class UploadService {
     public void planUpload(List<MultipartFile> gFiles, List<MultipartFile> dFiles,
         LocalDate uploadingDate) {
         List<CombineData> dataList = combineCSV(gFiles, dFiles, LocalDate.now());
+        String factory = getFactory(gFiles);
 
+        // 완제품 공장 고정
         List<CarOrder> carOrders = dataList.stream()
             .map(data -> {
                 CsvData csv = data.getCsvData();
                 DayPlusData dayplusData = csv.getDayplusData();
                 ErpStockData erp = data.getErpStockData();
 
-                return getCarOrder(csv, erp, dayplusData, uploadingDate);
+                return getCarOrder(csv, erp, dayplusData, uploadingDate, factory);
 
             }).toList();
 
@@ -109,6 +115,19 @@ public class UploadService {
         }
     }
 
+    private String getFactory(List<MultipartFile> gFiles) {
+        // 경산은 G파일만 업로드
+        if (gFiles == null || gFiles.isEmpty()) return "평택";
+        for (MultipartFile file : gFiles){
+            if (file != null && Objects.requireNonNull(file.getOriginalFilename()).contains("2500")){
+                return "경산";
+            }else {
+                return "평택";
+            }
+        }
+        return "평택";
+    }
+
     @Transactional(transactionManager = "postgresqlTransactionManager")
     public void outboundTargetUpload(MultipartFile file, LocalDate date) {
         List<OutboundTarget> outbounds = csvFileParser.OutboundTargetFileParsing(file, date)
@@ -146,6 +165,69 @@ public class UploadService {
             carOrderMapper.bulkInsertOperationPlanRaw(chunk);
         }
         orderOperationService.orderPlanRawOperation(stDate);
+    }
+
+    @Transactional(transactionManager = "postgresqlTransactionManager")
+    public void salesPriceUnitUpload(MultipartFile file){
+        List<SalesPrice> sellingPrices = csvFileParser.parsingSalesPriceUnitFile(file)
+                .stream().map(SalesPrice::from).toList();
+        carOrderMapper.deleteSalesPrice();
+
+        List<List<SalesPrice>> chunks = new ArrayList<>();
+        int chunkSize = 500;
+        for (int i = 0; i < sellingPrices.size(); i += chunkSize) {
+            int endIdx = Math.min(i + chunkSize, sellingPrices.size());
+            chunks.add(sellingPrices.subList(i, endIdx));
+        }
+        for (List<SalesPrice> chunk : chunks) {
+            carOrderMapper.bulkInsertSalesPrice(chunk);
+        }
+    }
+
+    @Transactional(transactionManager = "postgresqlTransactionManager")
+    public void stdOutsourcingCostUpload(MultipartFile file){
+        List<StdOutsourcingCost> sellingPrices = csvFileParser.parsingStdOutsourcingCostFile(file);
+        carOrderMapper.deleteStdOutsourcingCost();
+
+        List<List<StdOutsourcingCost>> chunks = new ArrayList<>();
+        int chunkSize = 500;
+        for (int i = 0; i < sellingPrices.size(); i += chunkSize) {
+            int endIdx = Math.min(i + chunkSize, sellingPrices.size());
+            chunks.add(sellingPrices.subList(i, endIdx));
+        }
+        for (List<StdOutsourcingCost> chunk : chunks) {
+            carOrderMapper.bulkInsertStdOutsourcingCost(chunk);
+        }
+    }
+
+    @Transactional(transactionManager = "postgresqlTransactionManager")
+    public void purchaseOutsourcingCostUpload(MultipartFile file){
+        List<PurchaseOutsourcingCost> sellingPrices = csvFileParser.parsingPurchaseOutsourcingCostFile(file);
+        carOrderMapper.deletePurchaseOutsourcingCost();
+
+        List<List<PurchaseOutsourcingCost>> chunks = new ArrayList<>();
+        int chunkSize = 500;
+        for (int i = 0; i < sellingPrices.size(); i += chunkSize) {
+            int endIdx = Math.min(i + chunkSize, sellingPrices.size());
+            chunks.add(sellingPrices.subList(i, endIdx));
+        }
+        for (List<PurchaseOutsourcingCost> chunk : chunks) {
+            carOrderMapper.bulkInsertPurchaseOutsourcingCost(chunk);
+        }
+    }
+
+    @Transactional(transactionManager = "postgresqlTransactionManager")
+    public void uploadSapOrderPlans(MultipartFile file){
+        List<SapOrderPlan> sapOrderPlans = csvFileParser.parsingSapOrderPlanFile(file);
+        List<List<SapOrderPlan>> chunks = new ArrayList<>();
+        int chunkSize = 500;
+        for (int i = 0; i < sapOrderPlans.size(); i += chunkSize) {
+            int endIdx = Math.min(i + chunkSize, sapOrderPlans.size());
+            chunks.add(sapOrderPlans.subList(i, endIdx));
+        }
+        for (List<SapOrderPlan> chunk : chunks) {
+            carOrderMapper.bulkInsertSapOrderPlan(chunk);
+        }
     }
 
 
@@ -221,7 +303,7 @@ public class UploadService {
         for (MultipartFile file : files) {
             String name = file.getOriginalFilename();
             if (Objects.nonNull(name)) {
-                if (name.contains("g-2000")) {
+                if (name.contains("g-2000") || name.contains("g-2500")) {
                     csvDataList.addAll(csvFileParser.g2000Parsing(file));
                 } else if (name.contains("g-3000")) {
                     csvDataList.addAll(csvFileParser.g3000Parsing(file));
@@ -370,7 +452,7 @@ public class UploadService {
     }
 
     private CarOrder getCarOrder(CsvData csv, ErpStockData erp, DayPlusData dayplusData,
-        LocalDate uploadDate) {
+        LocalDate uploadDate, String factory) {
         return CarOrder.builder()
             .category(csv.getCategory())
             .alc(csv.getAlc())
@@ -410,6 +492,7 @@ public class UploadService {
             .uploadDate(uploadDate)
             .createdDate(LocalDateTime.now())
             .modifyDate(LocalDateTime.now())
+            .factory(factory)
             .build();
     }
 

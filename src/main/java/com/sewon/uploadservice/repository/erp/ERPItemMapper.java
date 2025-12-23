@@ -14,5 +14,5 @@ public interface ERPItemMapper {
 
     List<CarPartNoTotalAgg> findPartNoTotalLast4Weeks(@Param("stDate") LocalDate stDate,
         @Param("startDate") LocalDate startDate,
-        @Param("endDate") LocalDate endDate, @Param("toDay") LocalDate toDay);
+        @Param("endDate") LocalDate endDate, @Param("toDay") LocalDate toDay, @Param("past5Months") boolean past5Months);
 }

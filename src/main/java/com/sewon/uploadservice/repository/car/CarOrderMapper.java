@@ -6,16 +6,21 @@ import com.sewon.uploadservice.model.dto.car.sgn.CarPropsCombineSpec;
 import com.sewon.uploadservice.model.dto.car.sgn.CarPropsGroupSpecCombineSpec;
 import com.sewon.uploadservice.model.dto.car.sgn.MonthProductAgg;
 import com.sewon.uploadservice.model.entity.CarOrder;
+import com.sewon.uploadservice.model.entity.SapOrderPlan;
 import com.sewon.uploadservice.model.entity.OperationLastMonthlyPlanAggregation;
 import com.sewon.uploadservice.model.entity.MesBox;
 import com.sewon.uploadservice.model.entity.MesInboundStockBox;
 import com.sewon.uploadservice.model.entity.MesInboundStock;
 import com.sewon.uploadservice.model.dto.mes.MesBoxData;
 import com.sewon.uploadservice.model.entity.MesOutboundStock;
+import com.sewon.uploadservice.model.entity.OperationPastMonthlyPlanAggregation;
 import com.sewon.uploadservice.model.entity.OperationPlanProductionRate;
 import com.sewon.uploadservice.model.entity.OperationPlanRaw;
 import com.sewon.uploadservice.model.entity.OperationPlanRawAggregation;
 import com.sewon.uploadservice.model.entity.OutboundTarget;
+import com.sewon.uploadservice.model.entity.PurchaseOutsourcingCost;
+import com.sewon.uploadservice.model.entity.SalesPrice;
+import com.sewon.uploadservice.model.entity.StdOutsourcingCost;
 import java.time.LocalDate;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
@@ -45,8 +50,18 @@ public interface CarOrderMapper {
 
     void bulkInsertOperationLastMonthlyPlanAgg(@Param("operationPlanMAgg") List<OperationLastMonthlyPlanAggregation> operationPlanMAgg);
 
+    void bulkInsertOperationPastMonthlyPlanAgg(@Param("operationPlanMAgg") List<OperationPastMonthlyPlanAggregation> operationPlanMAgg);
+
+    void bulkInsertSalesPrice(@Param("salesPrice") List<SalesPrice> salesPrice);
+
+    void bulkInsertStdOutsourcingCost(@Param("stdCost") List<StdOutsourcingCost> stdCost);
+
+    void bulkInsertPurchaseOutsourcingCost(@Param("purchaseCost") List<PurchaseOutsourcingCost> purchaseCost);
+
     // .service.partitioningPartNoByOrderPlanRawOperation 용도
     void bulkInsertOperationPlanProductionRate(@Param("operationPlanRate") List<OperationPlanProductionRate> operationPlanRate);
+
+    void bulkInsertSapOrderPlan(@Param("sapOrderPlans") List<SapOrderPlan> sapOrderPlans);
 
     void bulkUpdateMesBox(@Param("mesBoxes") List<MesBoxData> mesBoxes);
 
@@ -88,5 +103,13 @@ public interface CarOrderMapper {
 
     void deleteOpsPlanProductionRateByStDate(@Param("date") LocalDate date);
 
-    void deleteOpsMonthlyPlanAgg();
+    void deleteOpsLastMonthlyPlanAgg();
+
+    void deleteOpsPastMonthlyPlanAgg();
+
+    void deleteSalesPrice();
+
+    void deleteStdOutsourcingCost();
+
+    void deletePurchaseOutsourcingCost();
 }

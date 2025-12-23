@@ -4,7 +4,7 @@
   <select  id="findGroupListByPartType" resultType="CarGroupProps">
     WITH RANK AS (
       SELECT A.차종 AS carProps, A.품명 AS groupProps,
-      RANK() OVER (PARTITION BY A.차종, A.품명 ORDER BY A.등록일 DESC) AS RN
+      RANK() OVER (PARTITION BY A.차종, REPLACE(A.품명, '_', ' ') ORDER BY A.등록일 DESC) AS RN
       FROM TB_PDM_ORDER_ForWeeks A
     <where>
       등록일 >= DATEADD(MONTH , -2, (SELECT MAX(등록일) FROM TB_PDM_ORDER_ForWeeks))
@@ -16,13 +16,15 @@
           #{carProp}
         </foreach>
       </if>
+      AND
+      (대응지 LIKE N'%위해%' OR 대응지 LIKE N'%덕주%' OR 대응지 LIKE N'%베트남%' OR 대응지 LIKE N'%비나%')
     </where>
     GROUP BY A.차종, A.품명, A.등록일
-    ) SELECT carProps, groupProps FROM RANK WHERE RN = 1
+    ) SELECT ROW_NUMBER() over (ORDER BY carProps, groupProps) AS seq, carProps, groupProps FROM RANK WHERE RN = 1
   </select >
 
   <select id="findPartNoTotalLast4Weeks" resultType="CarPartNoTotalAgg">
-    WITH GroupData AS (SELECT MAX(등록일) as 최신등록일, PartNo, 품명, 대응지, SUM(합계) AS dplusTotal
+    WITH GroupData AS (SELECT MAX(등록일) as 최신등록일, PartNo, 품명, 대응지, MAX(합계) AS qty
                        FROM TB_PDM_ORDER_ForWeeks a
     <choose>
       <when test="startDate != null and endDate != null">
@@ -34,6 +36,11 @@
         <!--전 달 부터 오늘까지-->
         WHERE a.등록일 BETWEEN DATEADD(month, -1, #{toDay})
         and #{toDay}
+      </when>
+        <!-- stDate로 부터 5개월 전 -->
+      <when test="past5Months != null and past5Months == true and stDate != null">
+        WHERE a.등록일 BETWEEN DATEADD(MONTH, -5, #{stDate})
+        AND #{stDate}
       </when>
       <otherwise>
         <!-- 전 월 1일 ~ 전월 말 -->
@@ -56,19 +63,29 @@
               b.OptionCode2                                            as doorType,
               b.OptionCode1                                            as region,
               a.대응지                                                    as responder,
-              a.dplusTotal
+              a.qty
             FROM GroupData a
                    join TB_QAD_품목option정의마스터찾아보기 b on a.PartNo = b.PartNo),
          RankedData AS (SELECT *, ROW_NUMBER() over (PARTITION BY PartNo ORDER BY 최신등록일 DESC) AS RN
-                        FROM orderSummary)
+                        FROM orderSummary),
+    LatestPartNo AS (
+    SELECT PartNo
+    FROM TB_PDM_ORDER_ForWeeks WHERE 등록일 = (SELECT MAX(등록일) FROM TB_PDM_ORDER_ForWeeks)
+    )
     SELECT
-           carItem,
-           PartNo,
-           doorType,
-           region,
-           responder,
-           dplusTotal
-    FROM RankedData
-    WHERE RN = 1;
+           a.carItem,
+           a.PartNo,
+           a.doorType,
+           CASE
+               WHEN a.region = 'R01' THEN 'R01'
+               WHEN a.region IN ('R02', 'R03', 'R04', 'R05', 'R08', 'R09', 'R10', 'R11', 'R12') THEN 'R03'
+               WHEN a.region IN ('R06', 'R07') THEN 'R07'
+               ELSE a.region
+               END AS region,
+           a.responder,
+           IIF(b.PartNo IS NOT NULL, 'c', '') AS confirm,
+           a.qty
+    FROM RankedData a LEFT JOIN LatestPartNo b ON a.PartNo = b.PartNo
+    WHERE a.RN = 1
   </select>
 </mapper>
