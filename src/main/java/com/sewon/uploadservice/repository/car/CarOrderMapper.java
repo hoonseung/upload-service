@@ -6,6 +6,7 @@ import com.sewon.uploadservice.model.dto.car.sgn.CarPropsCombineSpec;
 import com.sewon.uploadservice.model.dto.car.sgn.CarPropsGroupSpecCombineSpec;
 import com.sewon.uploadservice.model.dto.car.sgn.MonthProductAgg;
 import com.sewon.uploadservice.model.entity.CarOrder;
+import com.sewon.uploadservice.model.entity.OrderDailyActual;
 import com.sewon.uploadservice.model.entity.SapOrderPlan;
 import com.sewon.uploadservice.model.entity.OperationLastMonthlyPlanAggregation;
 import com.sewon.uploadservice.model.entity.MesBox;
@@ -70,6 +71,8 @@ public interface CarOrderMapper {
     void bulkUpdateMesInboundStockBox(@Param("mesStockBoxes") List<MesInboundStockBox> mesStocks);
 
     void bulkUpdateLineAndYraStock(@Param("updateStocks") List<UpdateLineAndCustomerStock> updateStocks);
+
+    void bulkInsertOrderDailyActual(@Param("dailyActual") List<OrderDailyActual> dailyActual);
 
     List<String> getMissingItemCodeByMesBox(@Param("itemCodeArray") String[] itemCodeArray);
 

@@ -16,6 +16,7 @@ import com.sewon.uploadservice.model.dto.csv.DayPlusData;
 import com.sewon.uploadservice.model.dto.csv.OperationPlan;
 import com.sewon.uploadservice.model.dto.csv.OutboundTargetData;
 import com.sewon.uploadservice.model.dto.csv.SalesPriceUnit;
+import com.sewon.uploadservice.model.entity.OrderDailyActual;
 import com.sewon.uploadservice.model.entity.SapOrderPlan;
 import com.sewon.uploadservice.model.entity.PurchaseOutsourcingCost;
 import com.sewon.uploadservice.model.entity.StdOutsourcingCost;
@@ -269,7 +270,7 @@ public class CsvFileParser {
     }
 
     public List<SapOrderPlan> parsingSapOrderPlanFile(MultipartFile file) {
-        try (CSVParser parser = getParser(file, StandardCharsets.UTF_8)) {
+        try (CSVParser parser = getParser(file, Charset.forName("EUC-KR"))) {
             List<SapOrderPlan> dataList = new ArrayList<>();
             for (CSVRecord csvRecord : parser.getRecords()) {
                 dataList.add(
@@ -340,6 +341,25 @@ public class CsvFileParser {
                         getIntegerByRecord(csvRecord.get(63)),
                         getIntegerByRecord(csvRecord.get(64)),
                         getIntegerByRecord(csvRecord.get(65))
+                    )
+                );
+            }
+            return dataList;
+        } catch (IOException e) {
+            log.error("error message: {}", e.getMessage());
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public List<OrderDailyActual> parsingDailyActualFile(MultipartFile file) {
+        try (CSVParser parser = getParser(file, Charset.forName("EUC-KR"))) {
+            List<OrderDailyActual> dataList = new ArrayList<>();
+            for (CSVRecord csvRecord : parser.getRecords()) {
+                dataList.add(
+                    OrderDailyActual.of(
+                        csvRecord.get(0),
+                        csvRecord.get(7),
+                        getIntegerByRecord(csvRecord.get(15))
                     )
                 );
             }

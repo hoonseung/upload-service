@@ -300,6 +300,88 @@
         #{item.createdDate}, #{item.modifyDate}
         )
       </foreach>
+      ON CONFLICT (접수일자, 품목번호)
+      DO UPDATE SET
+      접수일자      = EXCLUDED.접수일자,
+      품목유형      = EXCLUDED.품목유형,
+      alc           = EXCLUDED.alc,
+      운전석방향    = EXCLUDED.운전석방향,
+      지역          = EXCLUDED.지역,
+      air_bag       = EXCLUDED.air_bag,
+      품목명        = EXCLUDED.품목명,
+      공장          = EXCLUDED.공장,
+      품목개정      = EXCLUDED.품목개정,
+      회로갯수      = EXCLUDED.회로갯수,
+      실적계        = EXCLUDED.실적계,
+      trim          = EXCLUDED.trim,
+      라인재고      = EXCLUDED.라인재고,
+      유라          = EXCLUDED.유라,
+      oem           = EXCLUDED.oem,
+      사내재고      = EXCLUDED.사내재고,
+      검사대기      = EXCLUDED.검사대기,
+      입고대기      = EXCLUDED.입고대기,
+      입하대기      = EXCLUDED.입하대기,
+      조립          = EXCLUDED.조립,
+      서브          = EXCLUDED.서브,
+      set_완료      = EXCLUDED.set_완료,
+      set_작업중    = EXCLUDED.set_작업중,
+      total         = EXCLUDED.total,
+      weihai        = EXCLUDED.weihai,
+      rizhao        = EXCLUDED.rizhao,
+      dezhou        = EXCLUDED.dezhou,
+      vina          = EXCLUDED.vina,
+      d0            = EXCLUDED.d0,
+      d1            = EXCLUDED.d1,
+      d2            = EXCLUDED.d2,
+      d3            = EXCLUDED.d3,
+      d4            = EXCLUDED.d4,
+      d5            = EXCLUDED.d5,
+      d6            = EXCLUDED.d6,
+      d7            = EXCLUDED.d7,
+      d8            = EXCLUDED.d8,
+      d9            = EXCLUDED.d9,
+      d10           = EXCLUDED.d10,
+      d11           = EXCLUDED.d11,
+      d12           = EXCLUDED.d12,
+      d13           = EXCLUDED.d13,
+      d14           = EXCLUDED.d14,
+      d15           = EXCLUDED.d15,
+      d16           = EXCLUDED.d16,
+      d17           = EXCLUDED.d17,
+      d18           = EXCLUDED.d18,
+      d19           = EXCLUDED.d19,
+      d20           = EXCLUDED.d20,
+      d21           = EXCLUDED.d21,
+      d22           = EXCLUDED.d22,
+      d23           = EXCLUDED.d23,
+      d24           = EXCLUDED.d24,
+      d25           = EXCLUDED.d25,
+      d26           = EXCLUDED.d26,
+      d27           = EXCLUDED.d27,
+      d28           = EXCLUDED.d28,
+      d29           = EXCLUDED.d29,
+      d30           = EXCLUDED.d30,
+      rem           = EXCLUDED.rem,
+      h_total       = EXCLUDED.h_total,
+      m             = EXCLUDED.m,
+      차월          = EXCLUDED.차월,
+      mitu          = EXCLUDED.mitu,
+      장기성재고    = EXCLUDED.장기성재고,
+      modified_at   = NOW();
+      </if>
+  </insert>
+
+  <insert id="bulkInsertOrderDailyActual" parameterType="java.util.List">
+    <if test="dailyActual != null and dailyActual.size > 0">
+      INSERT INTO order_daily_act (
+      plan_date, part_no, actual_qty, created_at
+      ) VALUES
+      <foreach collection="dailyActual" item="item" separator=",">
+        (
+        #{item.planDate}, #{item.partNo}, #{item.actualQty}, #{item.createdDate}
+        )
+      </foreach>
+      ON CONFLICT (plan_date, part_no) DO NOTHING
     </if>
   </insert>
 

@@ -1,6 +1,7 @@
 package com.sewon.uploadservice.service;
 
 import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
+import com.sewon.uploadservice.model.entity.OrderDailyActual;
 import com.sewon.uploadservice.model.entity.SapOrderPlan;
 import com.sewon.uploadservice.model.entity.PurchaseOutsourcingCost;
 import com.sewon.uploadservice.model.entity.CarOrder;
@@ -227,6 +228,34 @@ public class UploadService {
         }
         for (List<SapOrderPlan> chunk : chunks) {
             carOrderMapper.bulkInsertSapOrderPlan(chunk);
+        }
+    }
+
+    @Transactional(transactionManager = "postgresqlTransactionManager")
+    public void uploadDailyActual(MultipartFile file) {
+        List<OrderDailyActual> orderDailyActual = csvFileParser.parsingDailyActualFile(file)
+            .stream().collect(Collectors.groupingBy(i -> i.getPlanDate() + "." + i.getPartNo(),
+                Collectors.summingInt(OrderDailyActual::getActualQty)
+                ))
+            .entrySet().stream()
+            .map(e -> {
+                String key = e.getKey();
+                    return OrderDailyActual.of(
+                        key.split("\\.")[0],
+                        key.split("\\.")[1],
+                        e.getValue()
+                    );
+                }
+            ).toList();
+
+        List<List<OrderDailyActual>> chunks = new ArrayList<>();
+        int chunkSize = 500;
+        for (int i = 0; i < orderDailyActual.size(); i += chunkSize) {
+            int endIdx = Math.min(i + chunkSize, orderDailyActual.size());
+            chunks.add(orderDailyActual.subList(i, endIdx));
+        }
+        for (List<OrderDailyActual> chunk : chunks) {
+            carOrderMapper.bulkInsertOrderDailyActual(chunk);
         }
     }
 

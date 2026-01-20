@@ -142,4 +142,14 @@ public class UploadController {
         uploadService.uploadSapOrderPlans(file);
         return ResponseEntity.ok().body("success");
     }
+
+
+    @PostMapping("/v1/upload/daily/act")
+    public ResponseEntity<String> uploadDailyActual(@RequestParam("file") MultipartFile file){
+        if (fileEmptyCheck(file) || csvInValidByPart(file, "통합판매계획")){
+            return ResponseEntity.badRequest().body("fail");
+        }
+        uploadService.uploadDailyActual(file);
+        return ResponseEntity.ok().body("success");
+    }
 }
