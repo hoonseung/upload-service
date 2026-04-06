@@ -1,5 +1,6 @@
 package com.sewon.uploadservice.exception;
 
+import java.io.UncheckedIOException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
@@ -15,6 +16,12 @@ public class GlobalControllerAdvice {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<String> handelRuntimeException(RuntimeException ex){
+        log.error("occurs error.. message: {}", ex.getMessage(), ex);
+        return ResponseEntity.badRequest().build();
+    }
+
+    @ExceptionHandler(UncheckedIOException.class)
+    public ResponseEntity<String> handelUncheckedIOException(UncheckedIOException ex){
         log.error("occurs error.. message: {}", ex.getMessage(), ex);
         return ResponseEntity.badRequest().build();
     }

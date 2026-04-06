@@ -9,6 +9,7 @@ import static com.sewon.uploadservice.service.CSVFileValidator.filesEmptyCheck;
 import com.sewon.uploadservice.service.OrderOperationService;
 import com.sewon.uploadservice.service.UploadService;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -52,18 +53,18 @@ public class UploadController {
 
     @PostMapping("/v1/upload/outbound/second")
     public ResponseEntity<String> upload2andFile(@RequestParam("file") MultipartFile file) {
-        String prefix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyMMdd"));
+        String prefix = LocalDate.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyMMdd"));
         if (fileEmptyCheck(file) || csvFileInValid(file, prefix + "-2차")) {
             return ResponseEntity.badRequest().body("fail");
         }
-        uploadService.outboundTargetUpload(file, LocalDate.now());
+        uploadService.outboundTargetUpload(file, LocalDate.now(ZoneId.of("Asia/Seoul")));
         return ResponseEntity.ok().body("success");
     }
 
     @PostMapping("/v1/upload/line/customer/stock")
     public ResponseEntity<String> updateLineAndCustomerStock(
         @RequestParam("file") MultipartFile file) {
-        String prefix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyMMdd"));
+        String prefix = LocalDate.now(ZoneId.of("Asia/Seoul")).format(DateTimeFormatter.ofPattern("yyMMdd"));
         if (fileEmptyCheck(file) || csvFileInValid(file, prefix)) {
             return ResponseEntity.badRequest().body("fail");
         }
