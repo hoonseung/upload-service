@@ -39,6 +39,9 @@ out/
 ### yml ###
 **/src/main/resources/application.yml
 
+## docker ###
+/docker
+
 ## env ###
-.env
+/docker/.env
 **/.env
