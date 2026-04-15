@@ -222,6 +222,9 @@ public class UploadService {
         List<SapOrderPlan> sapOrderPlans = csvFileParser.parsingSapOrderPlanFile(file);
         List<List<SapOrderPlan>> chunks = new ArrayList<>();
         int chunkSize = 500;
+        if (!sapOrderPlans.isEmpty()){
+            carOrderMapper.deleteSapOrderPlanByDate(sapOrderPlans.get(0).getUploadDate());
+        }
         for (int i = 0; i < sapOrderPlans.size(); i += chunkSize) {
             int endIdx = Math.min(i + chunkSize, sapOrderPlans.size());
             chunks.add(sapOrderPlans.subList(i, endIdx));

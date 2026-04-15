@@ -106,6 +106,8 @@ public interface CarOrderMapper {
 
     void deleteOpsPlanProductionRateByStDate(@Param("date") LocalDate date);
 
+    void deleteSapOrderPlanByDate (@Param("date") LocalDate date);
+
     void deleteOpsLastMonthlyPlanAgg();
 
     void deleteOpsPastMonthlyPlanAgg();

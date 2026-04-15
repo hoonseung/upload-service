@@ -703,4 +703,9 @@
     FROM common_outsourcing_cost
   </delete>
 
+  <delete id="deleteSapOrderPlanByDate" parameterType="java.time.LocalDate">
+    DELETE
+    FROM pdm_sap_order WHERE 접수일자 = #{date}
+  </delete>
+
 </mapper>
