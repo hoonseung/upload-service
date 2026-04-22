@@ -15,6 +15,7 @@ import com.sewon.uploadservice.model.dto.csv.CsvData;
 import com.sewon.uploadservice.model.dto.csv.DayPlusData;
 import com.sewon.uploadservice.model.dto.csv.OperationPlan;
 import com.sewon.uploadservice.model.dto.csv.OutboundTargetData;
+import com.sewon.uploadservice.model.dto.csv.PartNoDivideData;
 import com.sewon.uploadservice.model.dto.csv.SalesPriceUnit;
 import com.sewon.uploadservice.model.entity.OrderDailyActual;
 import com.sewon.uploadservice.model.entity.SapOrderPlan;
@@ -29,7 +30,6 @@ import java.io.UncheckedIOException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -108,6 +108,28 @@ public class CsvFileParser {
                         getIntegerByRecord(csvRecord.get(2)),
                         getIntegerByRecord(csvRecord.get(3)),
                         getIntegerByRecord(csvRecord.get(4)),
+                        date)
+                );
+            }
+            return dataSet;
+        } catch (IOException e) {
+            log.error("error message: {}", e.getMessage());
+            throw new UncheckedIOException(e);
+        }
+    }
+
+
+    public Set<PartNoDivideData> partNoDivideFileParsing(MultipartFile file, LocalDate date) {
+        try (CSVParser parser = getParser(file, Charset.defaultCharset())) {
+            Set<PartNoDivideData> dataSet = new HashSet<>();
+            for (CSVRecord csvRecord : parser.getRecords()) {
+                dataSet.add(
+                    PartNoDivideData.of(
+                        csvRecord.get(0),
+                        csvRecord.get(1),
+                        csvRecord.get(2),
+                        csvRecord.get(3),
+                        csvRecord.get(4),
                         date)
                 );
             }

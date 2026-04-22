@@ -153,4 +153,14 @@ public class UploadController {
         uploadService.uploadDailyActual(file);
         return ResponseEntity.ok().body("success");
     }
+
+
+    @PostMapping("/v1/upload/operation/divide")
+    public ResponseEntity<String> uploadDivide(@RequestParam("file") MultipartFile file) {
+        if (fileEmptyCheck(file) || csvFileInValid(file, "이원화")) {
+            return ResponseEntity.badRequest().body("fail");
+        }
+        uploadService.partNoDivideUpload(file, LocalDate.now(ZoneId.of("Asia/Seoul")));
+        return ResponseEntity.ok().body("success");
+    }
 }

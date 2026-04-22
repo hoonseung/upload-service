@@ -1,7 +1,10 @@
 package com.sewon.uploadservice.service;
 
+import com.sewon.uploadservice.model.dto.car.CarProps;
+import com.sewon.uploadservice.model.dto.csv.PartNoDivideData;
 import com.sewon.uploadservice.model.dto.csv.UpdateLineAndCustomerStock;
 import com.sewon.uploadservice.model.entity.OrderDailyActual;
+import com.sewon.uploadservice.model.entity.PartNoDivide;
 import com.sewon.uploadservice.model.entity.SapOrderPlan;
 import com.sewon.uploadservice.model.entity.PurchaseOutsourcingCost;
 import com.sewon.uploadservice.model.entity.CarOrder;
@@ -22,6 +25,7 @@ import com.sewon.uploadservice.model.entity.SalesPrice;
 import com.sewon.uploadservice.model.entity.StdOutsourcingCost;
 import com.sewon.uploadservice.repository.car.CarOrderMapper;
 import com.sewon.uploadservice.model.dto.erp.TargetLocationDto;
+import com.sewon.uploadservice.repository.erp.ERPItemMapper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -52,6 +56,7 @@ public class UploadService {
     private final OrderOperationService orderOperationService;
 
     private final Set<String> refUniqueItemCodeSet = new HashSet<>();
+    private final ERPItemMapper eRPItemMapper;
 
     @Transactional(transactionManager = "postgresqlTransactionManager")
     public void planUpload(List<MultipartFile> gFiles, List<MultipartFile> dFiles,
@@ -136,6 +141,15 @@ public class UploadService {
             .map(OutboundTarget::from)
             .toList();
         carOrderMapper.bulkInsertOutboundTarget(outbounds);
+    }
+
+    @Transactional(transactionManager = "postgresqlTransactionManager")
+    public void partNoDivideUpload(MultipartFile file, LocalDate date) {
+        List<PartNoDivide>  divides = csvFileParser.partNoDivideFileParsing(file, date)
+            .stream()
+            .map(PartNoDivide::from)
+            .toList();
+        carOrderMapper.bulkInsertPartDivideTarget(divides);
     }
 
     @Transactional(transactionManager = "postgresqlTransactionManager")
@@ -255,7 +269,22 @@ public class UploadService {
         int chunkSize = 500;
         for (int i = 0; i < orderDailyActual.size(); i += chunkSize) {
             int endIdx = Math.min(i + chunkSize, orderDailyActual.size());
-            chunks.add(orderDailyActual.subList(i, endIdx));
+            List<OrderDailyActual> dailyActuals = orderDailyActual.subList(i, endIdx);
+            List<String> partNoList = dailyActuals.stream().map(OrderDailyActual::getPartNo).distinct()
+                .toList();
+
+            List<CarProps> carProsByPartNoList = eRPItemMapper.findCarProsByPartNoList(partNoList);
+
+            carProsByPartNoList.stream().distinct()
+                .forEach(pros -> dailyActuals.stream().filter(
+                    act -> act.getPartNo().equals(pros.partNo())
+                ).forEach(item -> {
+                    item.setCar(pros.car());
+                    item.setCarItem(pros.carItem());
+                    }
+                    )
+                );
+            chunks.add(dailyActuals);
         }
         for (List<OrderDailyActual> chunk : chunks) {
             carOrderMapper.bulkInsertOrderDailyActual(chunk);

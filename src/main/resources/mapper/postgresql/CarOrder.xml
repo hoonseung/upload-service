@@ -374,15 +374,33 @@
   <insert id="bulkInsertOrderDailyActual" parameterType="java.util.List">
     <if test="dailyActual != null and dailyActual.size > 0">
       INSERT INTO order_daily_act (
-      plan_date, part_no, actual_qty, created_at
+      plan_date, part_no, actual_qty, created_at, car, car_item
       ) VALUES
       <foreach collection="dailyActual" item="item" separator=",">
         (
-        #{item.planDate}, #{item.partNo}, #{item.actualQty}, #{item.createdDate}
+        #{item.planDate}, #{item.partNo}, #{item.actualQty}, #{item.createdDate},
+         #{item.car}, #{item.carItem}
         )
       </foreach>
       ON CONFLICT (plan_date, part_no) DO NOTHING
     </if>
+  </insert>
+
+  <insert id="bulkInsertPartDivideTarget" parameterType="java.util.List">
+    INSERT INTO order_part_divide(
+    item, part_no, site, etc, fixed, st_date, created_at, modified_at
+    ) VALUES
+    <foreach collection="divides" item="item" separator=",">
+      (#{item.item},
+      #{item.partNo}, #{item.site}, #{item.etc}, #{item.fixed},#{item.stDate},
+      #{item.createdDate}, #{item.modifyDate})
+    </foreach>
+    ON CONFLICT (part_no, st_date)
+    DO UPDATE
+    SET
+    site = EXCLUDED.site,
+    etc = EXCLUDED.etc,
+    fixed = EXCLUDED.fixed
   </insert>
 
   <update   id="bulkUpdateMesBox"  parameterType="java.util.List">

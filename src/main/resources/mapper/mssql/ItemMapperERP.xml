@@ -86,4 +86,29 @@
     FROM RankedData a LEFT JOIN LatestPartNo b ON a.PartNo = b.PartNo
     WHERE a.RN = 1
   </select>
+  <select id="findCarProsByPartNoList" resultType="CarProps">
+  SELECT
+  a.partNo,
+  a.partNoRev,
+  a.car,
+  a.carItem
+  FROM (
+  SELECT
+  품목번호 AS partNo,
+  [품목번호-개정] AS partNoRev,
+  품목유형 AS car,
+  [품목 설명 1] AS carItem,
+  ROW_NUMBER() OVER (PARTITION BY 품목번호 ORDER BY 생성일 DESC) AS rn
+  FROM TB_QAD_품목개정찾아보기
+  <where>
+    <if test="partNoList != null and partNoList.size() > 0">
+      품목번호 IN
+      <foreach collection="partNoList" item="partNo" open="(" separator="," close=")">
+        #{partNo}
+      </foreach>
+    </if>
+  </where>
+  ) a
+  WHERE a.rn = 1
+  </select>
 </mapper>

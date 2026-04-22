@@ -1,5 +1,6 @@
 package com.sewon.uploadservice.repository.erp;
 
+import com.sewon.uploadservice.model.dto.car.CarProps;
 import com.sewon.uploadservice.model.dto.car.sgn.CarGroupProps;
 import com.sewon.uploadservice.model.dto.car.spn.CarPartNoTotalAgg;
 import java.time.LocalDate;
@@ -15,4 +16,6 @@ public interface ERPItemMapper {
     List<CarPartNoTotalAgg> findPartNoTotalLast4Weeks(@Param("stDate") LocalDate stDate,
         @Param("startDate") LocalDate startDate,
         @Param("endDate") LocalDate endDate, @Param("toDay") LocalDate toDay, @Param("past5Months") boolean past5Months);
+
+    List<CarProps> findCarProsByPartNoList (@Param("partNoList") List<String> partNoList);
 }

@@ -7,6 +7,7 @@ import com.sewon.uploadservice.model.dto.car.sgn.CarPropsGroupSpecCombineSpec;
 import com.sewon.uploadservice.model.dto.car.sgn.MonthProductAgg;
 import com.sewon.uploadservice.model.entity.CarOrder;
 import com.sewon.uploadservice.model.entity.OrderDailyActual;
+import com.sewon.uploadservice.model.entity.PartNoDivide;
 import com.sewon.uploadservice.model.entity.SapOrderPlan;
 import com.sewon.uploadservice.model.entity.OperationLastMonthlyPlanAggregation;
 import com.sewon.uploadservice.model.entity.MesBox;
@@ -44,6 +45,8 @@ public interface CarOrderMapper {
     void bulkInsertOutboundMesStock(@Param("mesStocks") List<MesOutboundStock> mesStocks);
 
     void bulkInsertOutboundTarget(@Param("outbounds") List<OutboundTarget> outbounds);
+
+    void bulkInsertPartDivideTarget(@Param("divides") List<PartNoDivide> divides);
 
     void bulkInsertOperationPlanRaw(@Param("operationPlanRaws") List<OperationPlanRaw> operationPlanRaws);
 
