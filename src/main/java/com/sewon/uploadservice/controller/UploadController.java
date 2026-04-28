@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -146,8 +147,8 @@ public class UploadController {
 
 
     @PostMapping("/v1/upload/daily/act")
-    public ResponseEntity<String> uploadDailyActual(@RequestParam("file") MultipartFile file){
-        if (fileEmptyCheck(file) || csvInValidByPart(file, "통합판매계획")){
+    public ResponseEntity<String> uploadDailyActual(@RequestParam("file") List<MultipartFile> file){
+        if (filesEmptyCheck(file) || csvFileListInValid(file, "통합판매계획")){
             return ResponseEntity.badRequest().body("fail");
         }
         uploadService.uploadDailyActual(file);
@@ -156,7 +157,7 @@ public class UploadController {
 
 
     @PostMapping("/v1/upload/operation/divide")
-    public ResponseEntity<String> uploadDivide(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> uploadDivide(@RequestPart("file") MultipartFile file) {
         if (fileEmptyCheck(file) || csvFileInValid(file, "이원화")) {
             return ResponseEntity.badRequest().body("fail");
         }

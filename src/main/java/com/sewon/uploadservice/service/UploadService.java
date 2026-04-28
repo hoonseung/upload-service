@@ -123,11 +123,14 @@ public class UploadService {
 
     private String getFactory(List<MultipartFile> gFiles) {
         // 경산은 G파일만 업로드
-        if (gFiles == null || gFiles.isEmpty()) return "평택";
-        for (MultipartFile file : gFiles){
-            if (file != null && Objects.requireNonNull(file.getOriginalFilename()).contains("2500")){
+        if (gFiles == null || gFiles.isEmpty()) {
+            return "평택";
+        }
+        for (MultipartFile file : gFiles) {
+            if (file != null && Objects.requireNonNull(file.getOriginalFilename())
+                .contains("2500")) {
                 return "경산";
-            }else {
+            } else {
                 return "평택";
             }
         }
@@ -145,7 +148,7 @@ public class UploadService {
 
     @Transactional(transactionManager = "postgresqlTransactionManager")
     public void partNoDivideUpload(MultipartFile file, LocalDate date) {
-        List<PartNoDivide>  divides = csvFileParser.partNoDivideFileParsing(file, date)
+        List<PartNoDivide> divides = csvFileParser.partNoDivideFileParsing(file, date)
             .stream()
             .map(PartNoDivide::from)
             .toList();
@@ -183,9 +186,9 @@ public class UploadService {
     }
 
     @Transactional(transactionManager = "postgresqlTransactionManager")
-    public void salesPriceUnitUpload(MultipartFile file){
+    public void salesPriceUnitUpload(MultipartFile file) {
         List<SalesPrice> sellingPrices = csvFileParser.parsingSalesPriceUnitFile(file)
-                .stream().map(SalesPrice::from).toList();
+            .stream().map(SalesPrice::from).toList();
         carOrderMapper.deleteSalesPrice();
 
         List<List<SalesPrice>> chunks = new ArrayList<>();
@@ -200,7 +203,7 @@ public class UploadService {
     }
 
     @Transactional(transactionManager = "postgresqlTransactionManager")
-    public void stdOutsourcingCostUpload(MultipartFile file){
+    public void stdOutsourcingCostUpload(MultipartFile file) {
         List<StdOutsourcingCost> sellingPrices = csvFileParser.parsingStdOutsourcingCostFile(file);
         carOrderMapper.deleteStdOutsourcingCost();
 
@@ -216,8 +219,9 @@ public class UploadService {
     }
 
     @Transactional(transactionManager = "postgresqlTransactionManager")
-    public void purchaseOutsourcingCostUpload(MultipartFile file){
-        List<PurchaseOutsourcingCost> sellingPrices = csvFileParser.parsingPurchaseOutsourcingCostFile(file);
+    public void purchaseOutsourcingCostUpload(MultipartFile file) {
+        List<PurchaseOutsourcingCost> sellingPrices = csvFileParser.parsingPurchaseOutsourcingCostFile(
+            file);
         carOrderMapper.deletePurchaseOutsourcingCost();
 
         List<List<PurchaseOutsourcingCost>> chunks = new ArrayList<>();
@@ -232,11 +236,11 @@ public class UploadService {
     }
 
     @Transactional(transactionManager = "postgresqlTransactionManager")
-    public void uploadSapOrderPlans(MultipartFile file){
+    public void uploadSapOrderPlans(MultipartFile file) {
         List<SapOrderPlan> sapOrderPlans = csvFileParser.parsingSapOrderPlanFile(file);
         List<List<SapOrderPlan>> chunks = new ArrayList<>();
         int chunkSize = 500;
-        if (!sapOrderPlans.isEmpty()){
+        if (!sapOrderPlans.isEmpty()) {
             carOrderMapper.deleteSapOrderPlanByDate(sapOrderPlans.get(0).getUploadDate());
         }
         for (int i = 0; i < sapOrderPlans.size(); i += chunkSize) {
@@ -249,39 +253,46 @@ public class UploadService {
     }
 
     @Transactional(transactionManager = "postgresqlTransactionManager")
-    public void uploadDailyActual(MultipartFile file) {
-        List<OrderDailyActual> orderDailyActual = csvFileParser.parsingDailyActualFile(file)
-            .stream().collect(Collectors.groupingBy(i -> i.getPlanDate() + "." + i.getPartNo(),
-                Collectors.summingInt(OrderDailyActual::getActualQty)
-                ))
-            .entrySet().stream()
-            .map(e -> {
-                String key = e.getKey();
-                    return OrderDailyActual.of(
-                        key.split("\\.")[0],
-                        key.split("\\.")[1],
-                        e.getValue()
-                    );
-                }
-            ).toList();
+    public void uploadDailyActual(List<MultipartFile> file) {
+        List<OrderDailyActual> orderDailyActual = new ArrayList<>();
+        for (MultipartFile mf : file) {
+            orderDailyActual.addAll(
+                csvFileParser.parsingDailyActualFile(mf)
+                    .stream()
+                    .collect(Collectors.groupingBy(i -> i.getPlanDate() + "." + i.getPartNo(),
+                        Collectors.summingInt(OrderDailyActual::getActualQty)
+                    ))
+                    .entrySet().stream()
+                    .map(e -> {
+                            String key = e.getKey();
+                            return OrderDailyActual.of(
+                                key.split("\\.")[0],
+                                key.split("\\.")[1],
+                                e.getValue()
+                            );
+                        }
+                    ).toList()
+            );
+        }
 
         List<List<OrderDailyActual>> chunks = new ArrayList<>();
         int chunkSize = 500;
         for (int i = 0; i < orderDailyActual.size(); i += chunkSize) {
             int endIdx = Math.min(i + chunkSize, orderDailyActual.size());
             List<OrderDailyActual> dailyActuals = orderDailyActual.subList(i, endIdx);
-            List<String> partNoList = dailyActuals.stream().map(OrderDailyActual::getPartNo).distinct()
+            List<String> partNoList = dailyActuals.stream().map(OrderDailyActual::getPartNo)
+                .distinct()
                 .toList();
 
             List<CarProps> carProsByPartNoList = eRPItemMapper.findCarProsByPartNoList(partNoList);
 
             carProsByPartNoList.stream().distinct()
                 .forEach(pros -> dailyActuals.stream().filter(
-                    act -> act.getPartNo().equals(pros.partNo())
-                ).forEach(item -> {
-                    item.setCar(pros.car());
-                    item.setCarItem(pros.carItem());
-                    }
+                        act -> act.getPartNo().equals(pros.partNo())
+                    ).forEach(item -> {
+                            item.setCar(pros.car());
+                            item.setCarItem(pros.carItem());
+                        }
                     )
                 );
             chunks.add(dailyActuals);
