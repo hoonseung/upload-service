@@ -91,6 +91,7 @@ public class UploadService {
             List<MesBox> missingMesBoxes = getMissingMesBoxes(missingItemCodesByMesBox, 500);
 
             // 전체 리스트를 배치 사이즈만 큼 반복
+
             for (int i = 0; i < missingMesBoxes.size(); i += batchSize) {
                 int endIdx = Math.min(i + batchSize, missingMesBoxes.size());
                 List<MesBox> mesBoxes = missingMesBoxes.subList(i, endIdx);
@@ -112,10 +113,13 @@ public class UploadService {
 
             for (int i = 0; i < missingMesStock.size(); i += batchSize) {
                 int stockEndIdx = Math.min(i + batchSize, missingMesStock.size());
-                int boxEndIdx = Math.min(i + batchSize, missingMesStockBox.size());
                 List<MesInboundStock> mesStocks = missingMesStock.subList(i, stockEndIdx);
-                List<MesInboundStockBox> mesStockBoxes = missingMesStockBox.subList(i, boxEndIdx);
                 carOrderMapper.bulkInsertInboundMesStock(mesStocks);
+            }
+
+            for (int i = 0; i < missingMesStockBox.size(); i += batchSize) {
+                int boxEndIdx = Math.min(i + batchSize, missingMesStockBox.size());
+                List<MesInboundStockBox> mesStockBoxes = missingMesStockBox.subList(i, boxEndIdx);
                 carOrderMapper.bulkInsertInboundMesStockBox(mesStockBoxes);
             }
         }
